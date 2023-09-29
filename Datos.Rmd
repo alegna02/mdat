@@ -67,7 +67,7 @@ Hacemos un resumen rapido de los datos con la funcion summary:
 
 ```{r}
 summary(datos)
-media = mean(datos$bill_length_mm, na.rm =  TRUE) # le decimos que no tenga en cuenta los NA al hacer la media
+media = mean(datos$Capital.gain, na.rm =  TRUE) # le decimos que no tenga en cuenta los NA al hacer la media
 ```
 
 La media es: ```r media```
