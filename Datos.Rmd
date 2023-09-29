@@ -54,7 +54,8 @@ bla bla
 
 
 ```{r}
-datos <- read.csv("Adult datos.csv")
+datos <- read.csv('datos/AdultBueno.csv', sep = ';')
+
 ```
 
 
