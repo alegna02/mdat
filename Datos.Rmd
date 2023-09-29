@@ -1,0 +1,80 @@
+---
+title: "Ejemplo"
+output: html_document
+date: "2023-09-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+setwd('C:/Users/angyp/Desktop/Universidad 2023_2024/Mineria de Datos/Trabajo Mineria de Datos')
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Ejemplo de que escribo texto.
+
+
+# Nivel 1
+
+Tal tal
+
+## Nivel 2
+
+bla bla
+
+### Nivel 3
+
+ Ejemplo
+ 
+# Para escribir lo de abajo es control + alt + i
+
+```{r}
+
+```
+
+
+
+```{r}
+datos <- read.csv("palmerpenguis.csv")
+```
+
+
+```{r}
+str(datos)
+```
+
+Hacemos un resumen rapido de los datos con la funcion summary:
+
+```{r}
+summary(datos)
+media = mean(datos$bill_length_mm, na.rm =  TRUE) # le decimos que no tenga en cuenta los NA al hacer la media
+```
+
+La media es: ```r media```
+
+Estudiamos la relacion entre las variables *bill_length* y *bill_depth*
+
+```{r}
+ggplot(data = datos) + geom_point(aes(x = bill_length_mm, y = bill_depth_mm, col = species,
+                                      shape = species,
+                                      alpha = 0.5))
+```
