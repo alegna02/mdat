@@ -7,7 +7,7 @@ date: "2023-09-26"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
-setwd('C:/Users/angyp/Desktop/Universidad 2023_2024/Mineria de Datos/Trabajo Mineria de Datos')
+#setwd('C:/Users/angyp/Desktop/Universidad 2023_2024/Mineria de Datos/Trabajo Mineria de Datos')
 ```
 
 ## R Markdown
