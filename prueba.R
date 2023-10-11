@@ -1,7 +1,4 @@
 #prueba
-#hello
-#otra cosa
-# prueba
 
 
 getwd()
