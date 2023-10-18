@@ -92,10 +92,16 @@ media = mean(datos$Capital.gain, na.rm =  TRUE) # le decimos que no tenga en cue
 library(Hmisc)
 describe(datos)
 ```
+```{r}
+#Grafico pairs
+dataframe= cbind(Age=datos$Age,FNLWGT=datos$fnlwgt,CapitalGain=datos$Capital.gain,CapitalLoss=datos$Capital.loss,Horas=datos$Hours.per.week)
+pairs(dataframe)
+```
+
+
 
 ```{r}
 #Diagramas de dispersion
-
 qplot(Hours.per.week, fnlwgt, data = datos, colour = factor(Sex))+ geom_smooth()+
 ggtitle('Relación horas trabajadas por salario.Por género')
 ```
