@@ -1,0 +1,157 @@
+---
+title: "Ejemplo"
+output: html_document
+date: "2023-09-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(moments) 
+library(gmodels) 
+library(scales)
+library(survival) 
+library(zoo) 
+library(quantmod) 
+library(vcd) 
+library(vcdExtra)
+library(faraway) 
+library(Hmisc) 
+library(car) 
+library(MASS) 
+library(latticeExtra)
+library(dplyr) 
+library(tidyr) 
+library(ggplot2)
+library(gcookbook)
+
+
+```
+
+ 
+# Training Test
+
+```{r}
+
+setwd('C:/Users/angyp/Desktop/prueba')
+datos <- read.csv('AdultBueno.csv', sep = ';')
+
+# TRAIN TEST VALIDATION
+numero_total = nrow(datos)
+set.seed(123456) # reproductivilidad
+# 50% para TRAIN
+indices_train = sample(1:numero_total, .5*numero_total)
+Datos_Train = datos[indices_train,]
+# 25% para TEST
+indices = seq(1:numero_total)
+indices_test = sample(indices[-indices_train], .25*numero_total)
+Datos_Test = datos[indices_test,]
+# 25% para VALIDATION
+indices_validation = indices[-c(indices_train,indices_test)]
+```
+
+
+
+```{r}
+
+
+```
+
+
+```{r}
+str(datos)
+```
+
+Hacemos un resumen rapido de los datos con la funcion summary:
+
+```{r}
+
+Cuantitativo= data.frame(Age=Datos_Train$Age,FNLWGT=Datos_Train$fnlwgt,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Hours=Datos_Train$Hours.per.week)
+
+Cualitativo=data.frame(WorkClass=Datos_Train$Workclass,Education=Datos_Train$Education,EstadoCivil=Datos_Train$Marital.status,Occupation=Datos_Train$Occupation.,RelationShip=Datos_Train$Relationship,Race=Datos_Train$Race,Sex=Datos_Train$Sex,NativeCountry=Datos_Train$Native.country,Income=Datos_Train$Income.)
+
+summary(Cuantitativo)
+
+# summary(datos[,c("Age","fnlwgt","Education.num","Capital.gain","Capital.loss","Hours.per.week")])
+media = mean(datos$Capital.gain, na.rm =  TRUE) # le decimos que no tenga en cuenta los NA al hacer la media
+```
+```{r}
+library(Hmisc)
+describe(datos)
+```
+```{r}
+#Grafico pairs
+
+#Cuantitativo2= data.frame(Age=Datos_Train$Age,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Horas=Datos_Train$Hours.per.week)
+attach(Datos_Train)
+pairs(Cuantitativo)
+plot(Age,Hours.per.week)
+cor(Cuantitativo)
+```
+
+
+# Análisis bivariado
+
+```{r}
+#Diagramas de dispersion
+qplot(Hours.per.week, fnlwgt, data = datos, colour = factor(Sex))+ geom_smooth()+
+ggtitle('Relación horas trabajadas por salario.Por género')
+
+# Comparacion del income con las edades 
+ggplot(Datos_Train, aes(x = Age, fill = Income.)) + geom_bar()
+# Comparacion del income con la WorkClass 
+ggplot(Datos_Train, aes(x = Workclass, fill = Income.)) + geom_bar()
+# Comparacion del income con la Ocupacion 
+ggplot(Datos_Train, aes(x = Occupation., fill=Income.)) + geom_bar() + coord_flip()# Comparacion del income con las educacion 
+ggplot(Datos_Train, aes(x = Education, fill = Income.)) + geom_bar()
+# Comparacion del income con el sexo 
+ggplot(Datos_Train, aes(x = Sex, fill = Income.)) + geom_bar()
+# Comparacion del income con las MaritalStatus 
+ggplot(Datos_Train, aes(x = Marital.status, fill = Income.)) + geom_bar()
+# Comparacion del income con las pais 
+ggplot(Datos_Train, aes(x = Native.country, fill=Income.)) + geom_bar() + coord_flip()
+
+
+# HACER BOXPLOT NO HE HECHO PORQUE NO LOS ENTIENDO
+# LOS HISTOGRAMAS PARA MI NO TIENEN MUCHO SENTIDO
+
+```
+
+```{r}
+
+#Histograma para la variable edad
+ggplot(Cuantitativo, aes(x = Age)) +
+geom_histogram(fill="white", colour="black") +
+ggtitle('Histograma de numero de valores de la edad asociada')
+
+#Resto histogramas
+
+```
+Estudiamos la relacion entre las variables *sexo* y *capital.gain*
+
+
+```{r}
+
+```
+#Componentes Principales
+
+```{r}
+#Vemos los primeros datos
+head(Datos_Train)
+
+prcomp(Cuantitativo,scale=T)
+plot(prcomp(Cuantitativo,scale=T))
+summary(prcomp(Cuantitativo,scale=T))
+par(mfrow=c(2,3))
+plot(prcomp(Cuantitativo,scale=T)$x[,1:2])
+plot(prcomp(Cuantitativo,scale=T)$x[,c(1,3)])
+plot(prcomp(Cuantitativo,scale=T)$x[,c(1,4)])
+plot(prcomp(Cuantitativo,scale=T)$x[,c(2,3)])
+plot(prcomp(Cuantitativo,scale=T)$x[,c(2,4)])
+plot(prcomp(Cuantitativo,scale=T)$x[,c(3,4)])
+
+##poner target con colores
+```
+```{r}
+
+```
