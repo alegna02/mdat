@@ -29,12 +29,12 @@ library(gcookbook)
 ```
 
  
-# Training Test
+# Division de datos en Training Test
 
 ```{r}
 
-setwd('C:/Users/angyp/Desktop/prueba')
-datos <- read.csv('AdultBueno.csv', sep = ';')
+#setwd('C:/Users/angyp/Desktop/prueba')
+datos <- read.csv('datos/AdultBueno.csv', sep = ';')
 
 # TRAIN TEST VALIDATION
 numero_total = nrow(datos)
@@ -50,14 +50,7 @@ Datos_Test = datos[indices_test,]
 indices_validation = indices[-c(indices_train,indices_test)]
 ```
 
-
-
-```{r}
-
-
-```
-
-
+# Analisis exploratorio de datos
 ```{r}
 str(datos)
 ```
@@ -103,7 +96,7 @@ ggplot(Datos_Train, aes(x = Age, fill = Income.)) + geom_bar()
 ggplot(Datos_Train, aes(x = Workclass, fill = Income.)) + geom_bar()
 # Comparacion del income con la Ocupacion 
 ggplot(Datos_Train, aes(x = Occupation., fill=Income.)) + geom_bar() + coord_flip()# Comparacion del income con las educacion 
-ggplot(Datos_Train, aes(x = Education, fill = Income.)) + geom_bar()
+ggplot(Datos_Train, aes(x = Education, fill = Income.)) + geom_bar() + coord_flip()
 # Comparacion del income con el sexo 
 ggplot(Datos_Train, aes(x = Sex, fill = Income.)) + geom_bar()
 # Comparacion del income con las MaritalStatus 
@@ -152,6 +145,69 @@ plot(prcomp(Cuantitativo,scale=T)$x[,c(3,4)])
 
 ##poner target con colores
 ```
+
+# Analisis Cluster
 ```{r}
+n = dim(datos)[1]
+p = dim(datos)[2]
+DatosTrainEsc <- scale(Cuantitativo)
+clusters2.datos=kmeans(DatosTrainEsc,centers=2,nstart=25)
+clusters2.datos$cluster
+clusters2.datos$withinss
+
+clusters3.datos=kmeans(DatosTrainEsc,centers=3,nstart=25)
+clusters3.datos$cluster
+clusters3.datos$withinss
+
+clusters4.datos=kmeans(DatosTrainEsc,centers=4,nstart=25)
+clusters4.datos$cluster
+clusters4.datos$withinss
+
+clusters7.datos=kmeans(DatosTrainEsc,centers=7,nstart=25)
+clusters7.datos$cluster
+clusters7.datos$withinss
+
+
+#Inicializamos el vector
+SSW <- vector(mode = "numeric", length = 15)
+
+#Variabilidad de todos los datos, es decir, todos los datos como un único cluster
+SSW[1] <- (n - 1) * sum(apply(DatosTrainEsc,2,var)) 
+
+#Variabilidad de cada modelo, desde 2 clusters hasta 15 clusters
+for (i in 2:15) SSW[i] <- sum(kmeans(DatosTrainEsc,centers=i,nstart=25)$withinss)
+
+#Dibujamos un gráfico con el resultado
+plot(1:15, SSW, type="b", xlab="Number of Clusters", ylab="Sum of squares within groups",pch=19, col="steelblue4")
+
+centroides=aggregate(DatosTrainEsc,by=list(clusters4.datos $cluster),FUN=mean)
+t(centroides)  
+# Dibujamos los clusters en el scatterplot (variables 2a2)
+nk=4 # nk es el numero de clusters 
+pairs(DatosTrainEsc,col= clusters4.datos$cluster,pch=19)
+points(clusters4.datos$centers, col = 1:nk, pch = 19, cex=2)
+
+#Para 7
+centroides=aggregate(DatosTrainEsc,by=list(clusters7.datos $cluster),FUN=mean)
+t(centroides)  
+# Dibujamos los clusters en el scatterplot (variables 2a2)
+nk=4 # nk es el numero de clusters 
+pairs(DatosTrainEsc,col= clusters7.datos$cluster,pch=19)
+points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
+
+
+# ISAAC
+library(NbClust)
+nb <- NbClust(DatosTrainEsc, distance = "euclidean", min.nc = 2, max.nc = 15, method = "kmeans")
+
+library(parameters)
+
+# Ponemos los dos para comparar, el 7  lo dice el metodo el 4 pues para ver que pasa con menos
+res_kmeans <- cluster_analysis(DatosTrainEsc, n=4, method="kmeans")
+plot(summary(res_kmeans))
+ 
+res_kmeans <- cluster_analysis(DatosTrainEsc, n=7, method="kmeans")
+plot(summary(res_kmeans))
+
 
 ```
