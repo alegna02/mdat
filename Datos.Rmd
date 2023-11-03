@@ -212,11 +212,35 @@ plot(summary(res_kmeans))
 
 ```
 ```{r}
-# Guardamos el vector con el cluster correspondiente a cada país
-clusters7.datos <- clusters4.datos$cluster
-# Vamos a hacer PCA para poder graficar los clusters en 2dimensiones!
-library(cluster)
-clusplot(datos.st, datos.clusters4, color=TRUE, shade=TRUE, labels=2,lines=0)
+# El grafico que sirve no nos vale ya que tenemos muchos datos y no se ve claramente
+# # Guardamos el vector con el cluster correspondiente a cada país
+# datos.clusters7 <- clusters7.datos$cluster
+# # Vamos a hacer PCA para poder graficar los clusters en 2dimensiones!
+# library(cluster)
+# clusplot(DatosTrainEsc, datos.clusters7, color=TRUE, shade=TRUE, labels=2,lines=0)
 
 ```
+
+# Métodos jerarquicos
+
+```{r}
+# Primero obtenemos la matriz de distancias
+d <- dist(Datos_Train, method = "euclidean")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
