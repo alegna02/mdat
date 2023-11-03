@@ -211,3 +211,12 @@ plot(summary(res_kmeans))
 
 
 ```
+```{r}
+# Guardamos el vector con el cluster correspondiente a cada país
+clusters7.datos <- clusters4.datos$cluster
+# Vamos a hacer PCA para poder graficar los clusters en 2dimensiones!
+library(cluster)
+clusplot(datos.st, datos.clusters4, color=TRUE, shade=TRUE, labels=2,lines=0)
+
+```
+
