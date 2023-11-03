@@ -24,7 +24,7 @@ library(dplyr)
 library(tidyr) 
 library(ggplot2)
 library(gcookbook)
-
+library(stats)
 
 ```
 
@@ -62,6 +62,8 @@ Hacemos un resumen rapido de los datos con la funcion summary:
 Cuantitativo= data.frame(Age=Datos_Train$Age,FNLWGT=Datos_Train$fnlwgt,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Hours=Datos_Train$Hours.per.week)
 
 Cualitativo=data.frame(WorkClass=Datos_Train$Workclass,Education=Datos_Train$Education,EstadoCivil=Datos_Train$Marital.status,Occupation=Datos_Train$Occupation.,RelationShip=Datos_Train$Relationship,Race=Datos_Train$Race,Sex=Datos_Train$Sex,NativeCountry=Datos_Train$Native.country,Income=Datos_Train$Income.)
+
+CuantitativoTest= data.frame(Age=Datos_Test$Age,FNLWGT=Datos_Test$fnlwgt,CapitalGain=Datos_Test$Capital.gain,CapitalLoss=Datos_Test$Capital.loss,Hours=Datos_Test$Hours.per.week)
 
 summary(Cuantitativo)
 
@@ -132,7 +134,8 @@ Estudiamos la relacion entre las variables *sexo* y *capital.gain*
 #Vemos los primeros datos
 head(Datos_Train)
 
-prcomp(Cuantitativo,scale=T)
+pca<-prcomp(Cuantitativo,scale=T)
+pca
 plot(prcomp(Cuantitativo,scale=T))
 summary(prcomp(Cuantitativo,scale=T))
 par(mfrow=c(2,3))
@@ -143,7 +146,7 @@ plot(prcomp(Cuantitativo,scale=T)$x[,c(2,3)])
 plot(prcomp(Cuantitativo,scale=T)$x[,c(2,4)])
 plot(prcomp(Cuantitativo,scale=T)$x[,c(3,4)])
 
-##poner target con colores
+## FALTA poner target con colores
 ```
 
 # Analisis Cluster
@@ -191,7 +194,7 @@ points(clusters4.datos$centers, col = 1:nk, pch = 19, cex=2)
 centroides=aggregate(DatosTrainEsc,by=list(clusters7.datos $cluster),FUN=mean)
 t(centroides)  
 # Dibujamos los clusters en el scatterplot (variables 2a2)
-nk=4 # nk es el numero de clusters 
+nk=7 # nk es el numero de clusters 
 pairs(DatosTrainEsc,col= clusters7.datos$cluster,pch=19)
 points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
 
@@ -212,11 +215,89 @@ plot(summary(res_kmeans))
 
 ```
 ```{r}
-# Guardamos el vector con el cluster correspondiente a cada país
-clusters7.datos <- clusters4.datos$cluster
-# Vamos a hacer PCA para poder graficar los clusters en 2dimensiones!
-library(cluster)
-clusplot(datos.st, datos.clusters4, color=TRUE, shade=TRUE, labels=2,lines=0)
+# El grafico que sirve no nos vale ya que tenemos muchos datos y no se ve claramente
+# # Guardamos el vector con el cluster correspondiente a cada país
+# datos.clusters7 <- clusters7.datos$cluster
+# # Vamos a hacer PCA para poder graficar los clusters en 2dimensiones!
+# library(cluster)
+# clusplot(DatosTrainEsc, datos.clusters7, color=TRUE, shade=TRUE, labels=2,lines=0)
 
 ```
+
+# Métodos jerarquicos
+
+```{r}
+#Probamos varios metodos de agrupacion y nos damos cuenta que el mejor es
+# Primero obtenemos la matriz de distancias
+d <- dist(Cuantitativo, method = "euclidean")
+fit <- hclust(d, method="ward.D")
+plot(fit, labels=rownames(Cuantitativo),cex=0.7)#Este
+
+fit2 <- hclust(d, method="single")
+plot(fit2, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit3 <- hclust(d, method="complete")
+plot(fit3, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit4 <- hclust(d, method="average")
+plot(fit4, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit5 <- hclust(d, method="mcquitty")
+plot(fit5, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit6 <- hclust(d, method="median")
+plot(fit6, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit7 <- hclust(d, method="centroid")
+plot(fit7, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+
+```
+
+```{r}
+
+
+##
+## FALTA HACER UN CLUSTER DE LOS PCA
+##
+
+groups <- cutree(fit, k=7) # Fijamos en 7 el número de clusters
+plot(pca,col=groups)
+
+
+rect.hclust(fit, k=7, border="red")
+
+
+
+
+centroides=aggregate(DatosTrainEsc,by=list(clusters7.datos $cluster),FUN=mean)
+t(centroides)  
+# Dibujamos los clusters en el scatterplot (variables 2a2)
+nk=7 # nk es el numero de clusters 
+pairs(DatosTrainEsc,col= clusters7.datos$cluster,pch=19)
+points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
+
+```
+
+```{r}
+library(class)
+c1 <- factor(Datos_Train$Income.,labels = c(">50K", "<=50K"))
+k = length(datos$Age)^((4)/(14+4))
+modelo1 <- knn(train = Cuantitativo, test = CuantitativoTest, cl = c1, k = k)
+
+table(modelo1, Datos_Test$Income.)
+# Falta graficar esto 
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
