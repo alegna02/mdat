@@ -24,7 +24,7 @@ library(dplyr)
 library(tidyr) 
 library(ggplot2)
 library(gcookbook)
-
+library(stats)
 
 ```
 
@@ -132,7 +132,8 @@ Estudiamos la relacion entre las variables *sexo* y *capital.gain*
 #Vemos los primeros datos
 head(Datos_Train)
 
-prcomp(Cuantitativo,scale=T)
+pca<-prcomp(Cuantitativo,scale=T)
+pca
 plot(prcomp(Cuantitativo,scale=T))
 summary(prcomp(Cuantitativo,scale=T))
 par(mfrow=c(2,3))
@@ -224,12 +225,40 @@ plot(summary(res_kmeans))
 # Métodos jerarquicos
 
 ```{r}
+#Probamos varios metodos de agrupacion y nos damos cuenta que el mejor es
 # Primero obtenemos la matriz de distancias
-d <- dist(Datos_Train, method = "euclidean")
+d <- dist(Cuantitativo, method = "euclidean")
+fit <- hclust(d, method="ward.D")
+plot(fit, labels=rownames(Cuantitativo),cex=0.7)#Este
+
+fit2 <- hclust(d, method="single")
+plot(fit2, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit3 <- hclust(d, method="complete")
+plot(fit3, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit4 <- hclust(d, method="average")
+plot(fit4, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit5 <- hclust(d, method="mcquitty")
+plot(fit5, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit6 <- hclust(d, method="median")
+plot(fit6, labels=rownames(Cuantitativo),cex=0.7)#Este no
+
+fit7 <- hclust(d, method="centroid")
+plot(fit7, labels=rownames(Cuantitativo),cex=0.7)#Este no
 
 
 ```
 
+```{r}
+groups <- cutree(fit, k=7) # Fijamos en 7 el número de clusters
+plot(pca,col=groups)
+
+
+rect.hclust(fit, k=7, border="red")
+```
 
 
 
