@@ -289,6 +289,95 @@ table(modelo1, Datos_Test$Income.)
 # Falta graficar esto 
 ```
 
+#Arboles de decision
+
+```{r}
+#Convertimos las variables cualitativas en factores
+datos2<-read.csv('datos/AdultBueno.csv', sep = ';')
+datos2[,2] = as.factor(datos[,2])
+datos2[,4] = as.factor(datos[,4])
+datos2[,6] = as.factor(datos[,6])
+datos2[,7] = as.factor(datos[,7])
+datos2[,8] = as.factor(datos[,8])
+datos2[,9] = as.factor(datos[,9])
+datos2[,10] = as.factor(datos[,10])
+datos2[,14] = as.factor(datos[,14])
+datos2[,15] = as.factor(datos[,15])
+
+library(rpart)
+set.seed(123)
+datos2.rp <- rpart(datos2[,15] ~., data=datos2[,1:14], method="class", cp=0.0001, parms=list(split="information"))
+
+#graficamos y vemos el parámetro de complejidad
+plotcp(datos2.rp) #<-- El parametro de complejidad es 0,037. Nos quedamos con 0,03
+printcp(datos2.rp)
+
+
+# La grafica significa que combina la tasa de acierto con la profundidad del arbol. La forma de esta grfica significa que hay un momento en el cual la profundidad del arbol es mayor pero no mejora la tasa de acierto.
+
+Datos_Train2 = Datos_Train
+Datos_Train2[,2] = as.factor(Datos_Train[,2])
+Datos_Train2[,4] = as.factor(Datos_Train[,4])
+Datos_Train2[,6] = as.factor(Datos_Train[,6])
+Datos_Train2[,7] = as.factor(Datos_Train[,7])
+Datos_Train2[,8] = as.factor(Datos_Train[,8])
+Datos_Train2[,9] = as.factor(Datos_Train[,9])
+Datos_Train2[,10] = as.factor(Datos_Train[,10])
+Datos_Train2[,14] = as.factor(Datos_Train[,14])
+Datos_Train2[,15] = as.factor(Datos_Train[,15])
+
+Datos_Test2 = Datos_Test
+Datos_Test2[,2] = as.factor(Datos_Test[,2])
+Datos_Test2[,4] = as.factor(Datos_Test[,4])
+Datos_Test2[,6] = as.factor(Datos_Test[,6])
+Datos_Test2[,7] = as.factor(Datos_Test[,7])
+Datos_Test2[,8] = as.factor(Datos_Test[,8])
+Datos_Test2[,9] = as.factor(Datos_Test[,9])
+Datos_Test2[,10] = as.factor(Datos_Test[,10])
+Datos_Test2[,14] = as.factor(Datos_Test[,14])
+Datos_Test2[,15] = as.factor(Datos_Test[,15])
+
+
+
+n=dim(datos2)[1]
+y.pred=predict(datos2.rp,datos2[,-c(15)])
+factores=colnames(y.pred)
+y.pred.fact=matrix(0,n,1)
+for (i in 1:n)
+y.pred.fact[i]= factores[which.max(y.pred[i,])]
+y.real.fact=datos2[,15]
+table(y.pred.fact,y.real.fact) #<-Tabla de predicciones frente a valor real de todos los datos.
+# sum(y.real.fact=="buff")
+# sum(y.real.fact=="sick")
+
+
+
+x.train=Datos_Train2
+x.test=Datos_Test2
+
+#Datos train
+Datos_Train2.rp <- rpart(x.train[,15] ~., data=x.train[,1:14], cp=0.04, parms=list(split="information"))
+k=dim(x.train)[1]
+y.pred.train=predict(Datos_Train2.rp, x.train[,-c(15)])
+factores=colnames(y.pred.train)
+y.pred.train.fact=matrix(0,k,1)
+for (i in 1:k)
+y.pred.train.fact[i]= factores[which.max(y.pred.train[i,])]
+y.real.train.fact=x.train[,15]
+table.rpart.train=table(y.pred.train.fact,y.real.train.fact)
+
+
+#datos test
+##Datos_Test2 = Datos_Test2[Datos_Test2$Education != 'Preschool',]
+m=dim(x.test)[1] #tamanno de la muestra de test
+y.pred.test=predict(Datos_Train2.rp, x.test[,-c(15)])
+factores=colnames(y.pred.test)
+y.pred.test.fact =factores[max.col(y.pred.test)]
+y.real.test.fact=x.test[,15]
+table.rpart.test=table(y.pred.test.fact,y.real.test.fact)
+
+
+```
 
 
 
