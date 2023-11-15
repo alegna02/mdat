@@ -14,14 +14,14 @@ library(survival)
 library(zoo) 
 library(quantmod) 
 library(vcd) 
-library(vcdExtra)
+#library(vcdExtra)
 library(faraway) 
 library(Hmisc) 
 library(car) 
 library(MASS) 
 library(latticeExtra)
 library(dplyr) 
-library(tidyr) 
+#library(tidyr) 
 library(ggplot2)
 library(gcookbook)
 library(stats)
@@ -125,9 +125,7 @@ ggtitle('Histograma de numero de valores de la edad asociada')
 Estudiamos la relacion entre las variables *sexo* y *capital.gain*
 
 
-```{r}
 
-```
 #Componentes Principales
 
 ```{r}
@@ -339,6 +337,10 @@ Datos_Test2[,15] = as.factor(Datos_Test[,15])
 
 
 
+#Añadimos al train la fila que tiene Preschool pq esta en los test y no en el train
+Datos_Train2 <- rbind(Datos_Train2, Datos_Test2[c('209'),])
+
+# Predict con todos los datos de la tabla
 n=dim(datos2)[1]
 y.pred=predict(datos2.rp,datos2[,-c(15)])
 factores=colnames(y.pred)
@@ -379,6 +381,25 @@ table.rpart.test=table(y.pred.test.fact,y.real.test.fact)
 
 ```
 
+```{r}
+#Random Forest
+#RANDOM Forest Cleveland
+library(randomForest)
+set.seed(123)
+#Como da error en el test y no tiene sentido, es algo de que no estan relacionadas las tablas del train y del test
+# pues metemos una fila del train en el test y la quitamos y asi se relacionan
+x.test <- rbind(x.train[1,],x.test)
+x.test <- x.test[-1,]
+
+datos2.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
+y.pred.test.rf=predict(datos2.rf, x.test[,-c(15)])
+table.libreria.test=table(y.pred.test.rf,  as.factor(x.test[,15]))
+y.pred.train.rf= predict(datos2.rf, x.train[,-c(15)])
+table.libreria.train=table(y.pred.train.rf,  as.factor(x.train[,15]))
+print(table.libreria.test)
+print(table.libreria.train)
+
+```
 
 
 
