@@ -259,6 +259,9 @@ plot(fit7, labels=rownames(Cuantitativo),cex=0.7)#Este no
 ## FALTA HACER UN CLUSTER DE LOS PCA
 ##
 
+library(factoextra)
+fviz_cluster(clusters7.datos, data = Cuantitativo)
+
 groups <- cutree(fit, k=7) # Fijamos en 7 el número de clusters
 plot(pca,col=groups)
 
@@ -398,6 +401,16 @@ y.pred.train.rf= predict(datos2.rf, x.train[,-c(15)])
 table.libreria.train=table(y.pred.train.rf,  as.factor(x.train[,15]))
 print(table.libreria.test)
 print(table.libreria.train)
+
+
+datoNuevo <- data.frame(Age = 35, Workclass = "Private", fnlwgt = 125467, Education = "Bachelors", Education.num = 13, Marital.status = "Divorced", Occupation. = "Sales", Relationship = "Husband", Race = "White", Sex = "Female", Capital.gain = 1500, Capital.loss = 2000, Hours.per.week = 40, Native.country = "United-States")
+
+datoNuevo <- datos[1,]
+
+prediccionDatoNuevo=predict(datos2.rf, datoNuevo)
+
+
+# Preguntar a ruben que cambios estan haciendo para que les mejore la tabla de predicciones
 
 ```
 
