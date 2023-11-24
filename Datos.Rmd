@@ -28,29 +28,78 @@ library(stats)
 
 ```
 
- 
-# Division de datos en Training Test
+La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir si los ingresos de una serie de personas superan los 50000 dólares al año según los datos del censo. Esta base de datos fue extraida por Barry Becker del censo de 1994 y tiene 48842 observaciones y 14 variables.
+
+# Leemos los datos
+
+La base de datos que vamos a leer contiene sólo 1550 obervaciones. Esto se debe a que hemos escogido una muestra y lo que hemos hecho es eliminar los datos directamente de la base de datos, es decir, dentro del Excel. Además, aunque la base de datos original contiene valores nulos, nosotros nos hemos fijado en ellos y al ser pocos, un (calcular porcentaje)%, y ver que no son importantes los hemos decidido eliminar.
 
 ```{r}
-
-#setwd('C:/Users/angyp/Desktop/prueba')
+# Leemos los datos
 datos <- read.csv('datos/AdultBueno.csv', sep = ';')
-
-# TRAIN TEST VALIDATION
-numero_total = nrow(datos)
-set.seed(123456) # reproductivilidad
-# 50% para TRAIN
-indices_train = sample(1:numero_total, .5*numero_total)
-Datos_Train = datos[indices_train,]
-# 25% para TEST
-indices = seq(1:numero_total)
-indices_test = sample(indices[-indices_train], .25*numero_total)
-Datos_Test = datos[indices_test,]
-# 25% para VALIDATION
-indices_validation = indices[-c(indices_train,indices_test)]
 ```
 
-# Analisis exploratorio de datos
+# División de los datos en Train, Test y Validation
+
+Una vez leídos los datos, vamos a divirlos en tres conjuntos. 
+El primero de estos, son los datos Train. Estos van a ser el 50% de los datos, y nos van a servir para entrenar los diferentes modelos.
+El segundo, son los datos Test. Estos van a ser un 25% de los datos y con ellos vamos a ir evalúando el rendimiento del modelo en cada paso que demos. Nos van a servir para detectar si el modelo está sobreajustado (overfitting) o subajustado (underfitting).
+Por último, los datos Validation, nos van a servir para evaluar el rendimiento final del modelo después de haber sido entrenado y ajustado usando los otros conjuntos de datos. Estos datos no van a ser utilizados ni vistos por el modelo durante el entrenamiento, para así, poder obtener obtener evaluaciones imparciales en las predicciones de nuevas obervaciones.
+
+```{r}
+# División de los datos en Train, Test y Validation
+numero_filas = nrow(datos) # Miramos el número de filas
+set.seed(123456) # Creamos una semilla para qu ela división siempre sea la misma
+# Seleccionamos un 50% para TRAIN
+indices_train = sample(1:numero_filas, .5*numero_filas)
+Datos_Train = datos[indices_train,]
+# Seleccionamos un 25% para TEST
+indices = seq(1:numero_filas)
+indices_test = sample(indices[-indices_train], .25*numero_filas)
+Datos_Test = datos[indices_test,]
+# Seleccionamos un 25% para VALIDATION
+indices_validation = indices[-c(indices_train,indices_test)]
+Datos_Validation = datos[indices_validation,]
+```
+
+# Análisis exploratorio de datos
+
+Lo que pretendemos conseguir a partir de nuestros datos es predecir si los ingresos en un año van a ser superiores a 50000 dólares. Además, queremos ver que variables son las que más influyen en la predicción.
+
+Para ello vamos a realizar un análisis de los datos. Vamos a empezar viendo las variables que tenemos que estudiar.
+
+Age (edad): Variable de tipo númerico que expresa la edad de la persona.
+  * El rango de valores de la edad está entre 17 y 90.
+
+Workclass (clase de trabajo): Variable de tipo categórico que expresa la clase de trabajo que tiene la persona. Puede tomar los siguientes valores.
+  * Private, persona con empleo privado
+  * Self-emp-not-inc, autónomo
+  * Self-emp-inc, personas que trabajan de forma independiente y han establecido       una incorporación para su negocio o actividad laboral.
+  * Federal-gov, funcionario del gobierno federal
+  * Local-gov, funcionario del gobierno local
+  * State-gov, funcionario del gobierno estatal
+  * Without-pay, persona no empleada de manera remunerada (jubilados,                  voluntariados...)
+  * Never-worked, personas que nunca han trabajado
+  
+  
+  
+  
+  
+  
+
+fnlwgt (peso socio-económico): Variable de tipo
+Education (educación): Variable de tipo
+Education num (número de educación): Variable de tipo
+Marital status (estado civil): Variable de tipo
+Occupation (ocupación): Variable de tipo
+Relationship (relación): Variable de tipo
+Race (raza): Variable de tipo
+Sex (sexo): Variable de tipo
+Capital gain (capital ganado): Variable de tipo
+Capital loss (capital perdido): Variable de tipo
+Hours per week (horas por semana): Variable de tipo
+Native country (país de nacimiento): Variable de tipo
+Income ():
 ```{r}
 str(datos)
 ```
@@ -59,13 +108,15 @@ Hacemos un resumen rapido de los datos con la funcion summary:
 
 ```{r}
 
-Cuantitativo= data.frame(Age=Datos_Train$Age,FNLWGT=Datos_Train$fnlwgt,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Hours=Datos_Train$Hours.per.week)
+Cualitativo_Datos = data.frame(WorkClass=datos$Workclass,Education=datos$Education,EstadoCivil=datos$Marital.status,Occupation=datos$Occupation.,RelationShip=datos$Relationship,Race=datos$Race,Sex=datos$Sex,NativeCountry=datos$Native.country,Income=datos$Income.)
 
-Cualitativo=data.frame(WorkClass=Datos_Train$Workclass,Education=Datos_Train$Education,EstadoCivil=Datos_Train$Marital.status,Occupation=Datos_Train$Occupation.,RelationShip=Datos_Train$Relationship,Race=Datos_Train$Race,Sex=Datos_Train$Sex,NativeCountry=Datos_Train$Native.country,Income=Datos_Train$Income.)
+Cuantitativo_DatosTrain= data.frame(Age=Datos_Train$Age,FNLWGT=Datos_Train$fnlwgt,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Hours=Datos_Train$Hours.per.week)
 
-CuantitativoTest= data.frame(Age=Datos_Test$Age,FNLWGT=Datos_Test$fnlwgt,CapitalGain=Datos_Test$Capital.gain,CapitalLoss=Datos_Test$Capital.loss,Hours=Datos_Test$Hours.per.week)
+Cualitativo_DatosTrain=data.frame(WorkClass=Datos_Train$Workclass,Education=Datos_Train$Education,EstadoCivil=Datos_Train$Marital.status,Occupation=Datos_Train$Occupation.,RelationShip=Datos_Train$Relationship,Race=Datos_Train$Race,Sex=Datos_Train$Sex,NativeCountry=Datos_Train$Native.country,Income=Datos_Train$Income.)
 
-summary(Cuantitativo)
+Cuantitativo_DatosTest= data.frame(Age=Datos_Test$Age,FNLWGT=Datos_Test$fnlwgt,CapitalGain=Datos_Test$Capital.gain,CapitalLoss=Datos_Test$Capital.loss,Hours=Datos_Test$Hours.per.week)
+
+summary(Cuantitativo_DatosTrain)
 
 # summary(datos[,c("Age","fnlwgt","Education.num","Capital.gain","Capital.loss","Hours.per.week")])
 media = mean(datos$Capital.gain, na.rm =  TRUE) # le decimos que no tenga en cuenta los NA al hacer la media
@@ -79,9 +130,9 @@ describe(datos)
 
 #Cuantitativo2= data.frame(Age=Datos_Train$Age,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Horas=Datos_Train$Hours.per.week)
 attach(Datos_Train)
-pairs(Cuantitativo)
+pairs(Cuantitativo_DatosTrain)
 plot(Age,Hours.per.week)
-cor(Cuantitativo)
+cor(Cuantitativo_DatosTrain)
 ```
 
 
@@ -115,7 +166,7 @@ ggplot(Datos_Train, aes(x = Native.country, fill=Income.)) + geom_bar() + coord_
 ```{r}
 
 #Histograma para la variable edad
-ggplot(Cuantitativo, aes(x = Age)) +
+ggplot(Cuantitativo_DatosTrain, aes(x = Age)) +
 geom_histogram(fill="white", colour="black") +
 ggtitle('Histograma de numero de valores de la edad asociada')
 
@@ -132,17 +183,17 @@ Estudiamos la relacion entre las variables *sexo* y *capital.gain*
 #Vemos los primeros datos
 head(Datos_Train)
 
-pca<-prcomp(Cuantitativo,scale=T)
+pca<-prcomp(Cuantitativo_DatosTrain,scale=T)
 pca
-plot(prcomp(Cuantitativo,scale=T))
-summary(prcomp(Cuantitativo,scale=T))
+plot(prcomp(Cuantitativo_DatosTrain,scale=T))
+summary(prcomp(Cuantitativo_DatosTrain,scale=T))
 par(mfrow=c(2,3))
-plot(prcomp(Cuantitativo,scale=T)$x[,1:2])
-plot(prcomp(Cuantitativo,scale=T)$x[,c(1,3)])
-plot(prcomp(Cuantitativo,scale=T)$x[,c(1,4)])
-plot(prcomp(Cuantitativo,scale=T)$x[,c(2,3)])
-plot(prcomp(Cuantitativo,scale=T)$x[,c(2,4)])
-plot(prcomp(Cuantitativo,scale=T)$x[,c(3,4)])
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,1:2])
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,3)])
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,4)])
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(2,3)])
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(2,4)])
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(3,4)])
 
 ## FALTA poner target con colores
 ```
@@ -151,20 +202,20 @@ plot(prcomp(Cuantitativo,scale=T)$x[,c(3,4)])
 ```{r}
 n = dim(datos)[1]
 p = dim(datos)[2]
-DatosTrainEsc <- scale(Cuantitativo)
-clusters2.datos=kmeans(DatosTrainEsc,centers=2,nstart=25)
+DatosTrainEscalados <- scale(Cuantitativo_DatosTrain)
+clusters2.datos=kmeans(DatosTrainEscalados,centers=2,nstart=25)
 clusters2.datos$cluster
 clusters2.datos$withinss
 
-clusters3.datos=kmeans(DatosTrainEsc,centers=3,nstart=25)
+clusters3.datos=kmeans(DatosTrainEscalados,centers=3,nstart=25)
 clusters3.datos$cluster
 clusters3.datos$withinss
 
-clusters4.datos=kmeans(DatosTrainEsc,centers=4,nstart=25)
+clusters4.datos=kmeans(DatosTrainEscalados,centers=4,nstart=25)
 clusters4.datos$cluster
 clusters4.datos$withinss
 
-clusters7.datos=kmeans(DatosTrainEsc,centers=7,nstart=25)
+clusters7.datos=kmeans(DatosTrainEscalados,centers=7,nstart=25)
 clusters7.datos$cluster
 clusters7.datos$withinss
 
@@ -173,41 +224,41 @@ clusters7.datos$withinss
 SSW <- vector(mode = "numeric", length = 15)
 
 #Variabilidad de todos los datos, es decir, todos los datos como un único cluster
-SSW[1] <- (n - 1) * sum(apply(DatosTrainEsc,2,var)) 
+SSW[1] <- (n - 1) * sum(apply(DatosTrainEscalados,2,var)) 
 
 #Variabilidad de cada modelo, desde 2 clusters hasta 15 clusters
-for (i in 2:15) SSW[i] <- sum(kmeans(DatosTrainEsc,centers=i,nstart=25)$withinss)
+for (i in 2:15) SSW[i] <- sum(kmeans(DatosTrainEscalados,centers=i,nstart=25)$withinss)
 
 #Dibujamos un gráfico con el resultado
 plot(1:15, SSW, type="b", xlab="Number of Clusters", ylab="Sum of squares within groups",pch=19, col="steelblue4")
 
-centroides=aggregate(DatosTrainEsc,by=list(clusters4.datos $cluster),FUN=mean)
+centroides=aggregate(DatosTrainEscalados,by=list(clusters4.datos $cluster),FUN=mean)
 t(centroides)  
 # Dibujamos los clusters en el scatterplot (variables 2a2)
 nk=4 # nk es el numero de clusters 
-pairs(DatosTrainEsc,col= clusters4.datos$cluster,pch=19)
+pairs(DatosTrainEscalados,col= clusters4.datos$cluster,pch=19)
 points(clusters4.datos$centers, col = 1:nk, pch = 19, cex=2)
 
 #Para 7
-centroides=aggregate(DatosTrainEsc,by=list(clusters7.datos $cluster),FUN=mean)
+centroides=aggregate(DatosTrainEscalados,by=list(clusters7.datos $cluster),FUN=mean)
 t(centroides)  
 # Dibujamos los clusters en el scatterplot (variables 2a2)
 nk=7 # nk es el numero de clusters 
-pairs(DatosTrainEsc,col= clusters7.datos$cluster,pch=19)
+pairs(DatosTrainEscalados,col= clusters7.datos$cluster,pch=19)
 points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
 
 
 # ISAAC
 library(NbClust)
-nb <- NbClust(DatosTrainEsc, distance = "euclidean", min.nc = 2, max.nc = 15, method = "kmeans")
+nb <- NbClust(DatosTrainEscalados, distance = "euclidean", min.nc = 2, max.nc = 15, method = "kmeans")
 
 library(parameters)
 
 # Ponemos los dos para comparar, el 7  lo dice el metodo el 4 pues para ver que pasa con menos
-res_kmeans <- cluster_analysis(DatosTrainEsc, n=4, method="kmeans")
+res_kmeans <- cluster_analysis(DatosTrainEscalados, n=4, method="kmeans")
 plot(summary(res_kmeans))
  
-res_kmeans <- cluster_analysis(DatosTrainEsc, n=7, method="kmeans")
+res_kmeans <- cluster_analysis(DatosTrainEscalados, n=7, method="kmeans")
 plot(summary(res_kmeans))
 
 
@@ -218,7 +269,7 @@ plot(summary(res_kmeans))
 # datos.clusters7 <- clusters7.datos$cluster
 # # Vamos a hacer PCA para poder graficar los clusters en 2dimensiones!
 # library(cluster)
-# clusplot(DatosTrainEsc, datos.clusters7, color=TRUE, shade=TRUE, labels=2,lines=0)
+# clusplot(DatosTrainEscalados, datos.clusters7, color=TRUE, shade=TRUE, labels=2,lines=0)
 
 ```
 
@@ -227,27 +278,27 @@ plot(summary(res_kmeans))
 ```{r}
 #Probamos varios metodos de agrupacion y nos damos cuenta que el mejor es
 # Primero obtenemos la matriz de distancias
-d <- dist(Cuantitativo, method = "euclidean")
+d <- dist(Cuantitativo_DatosTrain, method = "euclidean")
 fit <- hclust(d, method="ward.D")
-plot(fit, labels=rownames(Cuantitativo),cex=0.7)#Este
+plot(fit, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este
 
 fit2 <- hclust(d, method="single")
-plot(fit2, labels=rownames(Cuantitativo),cex=0.7)#Este no
+plot(fit2, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
 
 fit3 <- hclust(d, method="complete")
-plot(fit3, labels=rownames(Cuantitativo),cex=0.7)#Este no
+plot(fit3, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
 
 fit4 <- hclust(d, method="average")
-plot(fit4, labels=rownames(Cuantitativo),cex=0.7)#Este no
+plot(fit4, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
 
 fit5 <- hclust(d, method="mcquitty")
-plot(fit5, labels=rownames(Cuantitativo),cex=0.7)#Este no
+plot(fit5, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
 
 fit6 <- hclust(d, method="median")
-plot(fit6, labels=rownames(Cuantitativo),cex=0.7)#Este no
+plot(fit6, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
 
 fit7 <- hclust(d, method="centroid")
-plot(fit7, labels=rownames(Cuantitativo),cex=0.7)#Este no
+plot(fit7, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
 
 
 ```
@@ -259,8 +310,8 @@ plot(fit7, labels=rownames(Cuantitativo),cex=0.7)#Este no
 ## FALTA HACER UN CLUSTER DE LOS PCA
 ##
 
-library(factoextra)
-fviz_cluster(clusters7.datos, data = Cuantitativo)
+#library(factoextra)
+#fviz_cluster(clusters7.datos, data = Cuantitativo_DatosTrain)
 
 groups <- cutree(fit, k=7) # Fijamos en 7 el número de clusters
 plot(pca,col=groups)
@@ -271,20 +322,20 @@ rect.hclust(fit, k=7, border="red")
 
 
 
-centroides=aggregate(DatosTrainEsc,by=list(clusters7.datos $cluster),FUN=mean)
+centroides=aggregate(DatosTrainEscalados,by=list(clusters7.datos $cluster),FUN=mean)
 t(centroides)  
 # Dibujamos los clusters en el scatterplot (variables 2a2)
 nk=7 # nk es el numero de clusters 
-pairs(DatosTrainEsc,col= clusters7.datos$cluster,pch=19)
+pairs(DatosTrainEscalados,col= clusters7.datos$cluster,pch=19)
 points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
 
 ```
 
 ```{r}
 library(class)
-c1 <- factor(Datos_Train$Income.,labels = c(">50K", "<=50K"))
-k = length(datos$Age)^((4)/(14+4))
-modelo1 <- knn(train = Cuantitativo, test = CuantitativoTest, cl = c1, k = k)
+c2 <- factor(Datos_Train$Income.,labels = c(">50K", "<=50K"))
+k1 = length(datos$Age)^((4)/(14+4))
+modelo1 <- knn(train = Cuantitativo_DatosTrain, test = Cuantitativo_DatosTest, cl = c2, k = k1)
 
 table(modelo1, Datos_Test$Income.)
 # Falta graficar esto 
@@ -294,76 +345,78 @@ table(modelo1, Datos_Test$Income.)
 
 ```{r}
 #Convertimos las variables cualitativas en factores
-datos2<-read.csv('datos/AdultBueno.csv', sep = ';')
-datos2[,2] = as.factor(datos[,2])
-datos2[,4] = as.factor(datos[,4])
-datos2[,6] = as.factor(datos[,6])
-datos2[,7] = as.factor(datos[,7])
-datos2[,8] = as.factor(datos[,8])
-datos2[,9] = as.factor(datos[,9])
-datos2[,10] = as.factor(datos[,10])
-datos2[,14] = as.factor(datos[,14])
-datos2[,15] = as.factor(datos[,15])
+
+Datos_con_Factores <- datos
+Datos_con_Factores[,2] = as.factor(Datos_con_Factores[,2])
+Datos_con_Factores[,4] = as.factor(Datos_con_Factores[,4])
+Datos_con_Factores[,6] = as.factor(Datos_con_Factores[,6])
+Datos_con_Factores[,7] = as.factor(Datos_con_Factores[,7])
+Datos_con_Factores[,8] = as.factor(Datos_con_Factores[,8])
+Datos_con_Factores[,9] = as.factor(Datos_con_Factores[,9])
+Datos_con_Factores[,10] = as.factor(Datos_con_Factores[,10])
+Datos_con_Factores[,14] = as.factor(Datos_con_Factores[,14])
+Datos_con_Factores[,15] = as.factor(Datos_con_Factores[,15])
+
 
 library(rpart)
 set.seed(123)
-datos2.rp <- rpart(datos2[,15] ~., data=datos2[,1:14], method="class", cp=0.0001, parms=list(split="information"))
+Datos_con_Factores.rp <- rpart(Datos_con_Factores[,15] ~., data=Datos_con_Factores[,1:14], method="class", cp=0.0001, parms=list(split="information"))
 
 #graficamos y vemos el parámetro de complejidad
-plotcp(datos2.rp) #<-- El parametro de complejidad es 0,037. Nos quedamos con 0,03
-printcp(datos2.rp)
+plotcp(Datos_con_Factores.rp) #<-- El parametro de complejidad es 0,037. Nos quedamos con 0,03
+printcp(Datos_con_Factores.rp)
 
 
 # La grafica significa que combina la tasa de acierto con la profundidad del arbol. La forma de esta grfica significa que hay un momento en el cual la profundidad del arbol es mayor pero no mejora la tasa de acierto.
 
-Datos_Train2 = Datos_Train
-Datos_Train2[,2] = as.factor(Datos_Train[,2])
-Datos_Train2[,4] = as.factor(Datos_Train[,4])
-Datos_Train2[,6] = as.factor(Datos_Train[,6])
-Datos_Train2[,7] = as.factor(Datos_Train[,7])
-Datos_Train2[,8] = as.factor(Datos_Train[,8])
-Datos_Train2[,9] = as.factor(Datos_Train[,9])
-Datos_Train2[,10] = as.factor(Datos_Train[,10])
-Datos_Train2[,14] = as.factor(Datos_Train[,14])
-Datos_Train2[,15] = as.factor(Datos_Train[,15])
+Datos_Train_con_Factores = Datos_Train
+Datos_Train_con_Factores[,2] = as.factor(Datos_Train_con_Factores[,2])
+Datos_Train_con_Factores[,4] = as.factor(Datos_Train_con_Factores[,4])
+Datos_Train_con_Factores[,6] = as.factor(Datos_Train_con_Factores[,6])
+Datos_Train_con_Factores[,7] = as.factor(Datos_Train_con_Factores[,7])
+Datos_Train_con_Factores[,8] = as.factor(Datos_Train_con_Factores[,8])
+Datos_Train_con_Factores[,9] = as.factor(Datos_Train_con_Factores[,9])
+Datos_Train_con_Factores[,10] = as.factor(Datos_Train_con_Factores[,10])
+Datos_Train_con_Factores[,14] = as.factor(Datos_Train_con_Factores[,14])
+Datos_Train_con_Factores[,15] = as.factor(Datos_Train_con_Factores[,15])
 
-Datos_Test2 = Datos_Test
-Datos_Test2[,2] = as.factor(Datos_Test[,2])
-Datos_Test2[,4] = as.factor(Datos_Test[,4])
-Datos_Test2[,6] = as.factor(Datos_Test[,6])
-Datos_Test2[,7] = as.factor(Datos_Test[,7])
-Datos_Test2[,8] = as.factor(Datos_Test[,8])
-Datos_Test2[,9] = as.factor(Datos_Test[,9])
-Datos_Test2[,10] = as.factor(Datos_Test[,10])
-Datos_Test2[,14] = as.factor(Datos_Test[,14])
-Datos_Test2[,15] = as.factor(Datos_Test[,15])
+Datos_Test_con_Factores = Datos_Test
+Datos_Test_con_Factores[,2] = as.factor(Datos_Test_con_Factores[,2])
+Datos_Test_con_Factores[,4] = as.factor(Datos_Test_con_Factores[,4])
+Datos_Test_con_Factores[,6] = as.factor(Datos_Test_con_Factores[,6])
+Datos_Test_con_Factores[,7] = as.factor(Datos_Test_con_Factores[,7])
+Datos_Test_con_Factores[,8] = as.factor(Datos_Test_con_Factores[,8])
+Datos_Test_con_Factores[,9] = as.factor(Datos_Test_con_Factores[,9])
+Datos_Test_con_Factores[,10] = as.factor(Datos_Test_con_Factores[,10])
+Datos_Test_con_Factores[,14] = as.factor(Datos_Test_con_Factores[,14])
+Datos_Test_con_Factores[,15] = as.factor(Datos_Test_con_Factores[,15])
 
 
 
 #Añadimos al train la fila que tiene Preschool pq esta en los test y no en el train
-Datos_Train2 <- rbind(Datos_Train2, Datos_Test2[c('209'),])
+Datos_Train_con_Factores <- rbind(Datos_Train_con_Factores, Datos_Test_con_Factores[c('209'),])
 
 # Predict con todos los datos de la tabla
-n=dim(datos2)[1]
-y.pred=predict(datos2.rp,datos2[,-c(15)])
+n=dim(Datos_con_Factores)[1]
+y.pred=predict(Datos_con_Factores.rp,Datos_con_Factores[,-c(15)])
 factores=colnames(y.pred)
 y.pred.fact=matrix(0,n,1)
 for (i in 1:n)
 y.pred.fact[i]= factores[which.max(y.pred[i,])]
-y.real.fact=datos2[,15]
+y.real.fact=Datos_con_Factores[,15]
 table(y.pred.fact,y.real.fact) #<-Tabla de predicciones frente a valor real de todos los datos.
 # sum(y.real.fact=="buff")
 # sum(y.real.fact=="sick")
 
 
 
-x.train=Datos_Train2
-x.test=Datos_Test2
+x.train=Datos_Train_con_Factores
+x.test=Datos_Test_con_Factores
 
 #Datos train
-Datos_Train2.rp <- rpart(x.train[,15] ~., data=x.train[,1:14], cp=0.04, parms=list(split="information"))
+Datos_Train_con_Factores.rp <- rpart(x.train[,15] ~., data=x.train[,1:14], cp=0.04, parms=list(split="information"))
 k=dim(x.train)[1]
-y.pred.train=predict(Datos_Train2.rp, x.train[,-c(15)])
+y.pred.train=predict(Datos_Train_con_Factores.rp, x.train[,-c(15)])
 factores=colnames(y.pred.train)
 y.pred.train.fact=matrix(0,k,1)
 for (i in 1:k)
@@ -373,9 +426,9 @@ table.rpart.train=table(y.pred.train.fact,y.real.train.fact)
 
 
 #datos test
-##Datos_Test2 = Datos_Test2[Datos_Test2$Education != 'Preschool',]
+##Datos_Test_con_Factores = Datos_Test_con_Factores[Datos_Test_con_Factores$Education != 'Preschool',]
 m=dim(x.test)[1] #tamanno de la muestra de test
-y.pred.test=predict(Datos_Train2.rp, x.test[,-c(15)])
+y.pred.test=predict(Datos_Train_con_Factores.rp, x.test[,-c(15)])
 factores=colnames(y.pred.test)
 y.pred.test.fact =factores[max.col(y.pred.test)]
 y.real.test.fact=x.test[,15]
@@ -394,23 +447,29 @@ set.seed(123)
 x.test <- rbind(x.train[1,],x.test)
 x.test <- x.test[-1,]
 
-datos2.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
-y.pred.test.rf=predict(datos2.rf, x.test[,-c(15)])
+Datos_con_Factores.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
+y.pred.test.rf=predict(Datos_con_Factores.rf, x.test[,-c(15)])
 table.libreria.test=table(y.pred.test.rf,  as.factor(x.test[,15]))
-y.pred.train.rf= predict(datos2.rf, x.train[,-c(15)])
+y.pred.train.rf= predict(Datos_con_Factores.rf, x.train[,-c(15)])
 table.libreria.train=table(y.pred.train.rf,  as.factor(x.train[,15]))
 print(table.libreria.test)
 print(table.libreria.train)
 
 
-datoNuevo <- data.frame(Age = 35, Workclass = "Private", fnlwgt = 125467, Education = "Bachelors", Education.num = 13, Marital.status = "Divorced", Occupation. = "Sales", Relationship = "Husband", Race = "White", Sex = "Female", Capital.gain = 1500, Capital.loss = 2000, Hours.per.week = 40, Native.country = "United-States")
-
-datoNuevo <- datos[1,]
-
-prediccionDatoNuevo=predict(datos2.rf, datoNuevo)
 
 
-# Preguntar a ruben que cambios estan haciendo para que les mejore la tabla de predicciones
+# Hay que ponerlo como factor y no se como se hace pq las predicciones las hemos hecho con factores, no se si se puede hacer el modelo sin factores. Luego hay que añadir un dato de x.train y quitarlo pq si no da error
+datoNuevo <- data.frame(Age = 38, Workclass = "Private", fnlwgt = 125467, Education = "Bachelors", Education.num = 13, Marital.status = "Divorced", Occupation. = "Sales", Relationship = "Husband", Race = "White", Sex = "Female", Capital.gain = 1500, Capital.loss = 2000, Hours.per.week = 40, Native.country = "United-States", Income. = ">50K")
+
+
+#datoNuevo <- datos[1,]
+
+datoNuevo <- rbind(x.train[1,],datoNuevo)
+datoNuevo <- datoNuevo[-1,]
+
+
+prediccionDatoNuevo=predict(Datos_con_Factores.rf, datoNuevo)
+
 
 ```
 
