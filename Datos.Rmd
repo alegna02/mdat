@@ -177,26 +177,137 @@ Estudiamos la relacion entre las variables *sexo* y *capital.gain*
 
 
 
-#Componentes Principales
+#Análisis de Componentes Principales
 
 ```{r}
-#Vemos los primeros datos
-head(Datos_Train)
+#Target con colores
+pca<-prcomp(Cuantitativo_DatosTrain,scale=T)
 
+pca_dataframe <- as.data.frame(pca$x)
+pca_dataframe_Income <- Datos_Train$Income.
+
+
+par(mfrow=c(2,3))
+ggplot(pca_dataframe, aes(x = PC1, y = PC2, color = Income.)) +
+  geom_point() +
+  labs(title = "PCA con Colores según el Income")
+
+ggplot(pca_dataframe, aes(x = PC1, y = PC3, color = Income.)) +
+  geom_point() +
+  labs(title = "PCA con Colores según el Income")
+
+ggplot(pca_dataframe, aes(x = PC1, y = PC4, color = Income.)) +
+  geom_point() +
+  labs(title = "PCA con Colores según el Income")
+
+ggplot(pca_dataframe, aes(x = PC2, y = PC3, color = Income.)) +
+  geom_point() +
+  labs(title = "PCA con Colores según el Income")
+
+ggplot(pca_dataframe, aes(x = PC2, y = PC4, color = Income.)) +
+  geom_point() +
+  labs(title = "PCA con Colores según el Income")
+
+ggplot(pca_dataframe, aes(x = PC3, y = PC4, color = Income.)) +
+  geom_point() +
+  labs(title = "PCA con Colores según el Income")
+```
+
+
+
+```{r}
 pca<-prcomp(Cuantitativo_DatosTrain,scale=T)
 pca
+```
+
+PC1 asigna pesos. La mayoría de las ocasiones asigna el mismo signo a todas las covariables. En nuestro caso particular la variable FNLWGT posee signo positivo mientras que las otras poseen el signo contrario. Esto se puede interpretar de la siguiente manera:
+  -	La variable FNLWGT, esta fuertemente correlacionada de forma positiva con PC1.
+  -	Las variables que tienen el signo contrario sugieren una relación inversa con PC1.
+
+Hay algunas posibles interpretaciones sobre esto, pero la que más nos convence (un vez realizado el análisis exploratorio de datos) es que  FNLWGT  tiene un impacto muy grande en la variabilidad general de los datos mientras que las demás variables, de forma INDIVIDUAL, tiene una relación no tan significativa.
+
+Vamos a analizar y a interpretar la PC2. Esto es, las personas estarían ordenadas en cuanto a su Capital Loss en un sentido ponderando en sentido contrario el Capital Gain.
+
+En PC3 el orden viene determinado solamente por FNLWGT.
+
+El caso de PC4 es muy interesante pues se puede llegar a interpretar de la siguiente manera. Hay correlación negativa entre la variable Age y las horas trabajadas por semana. Luego esto quiere decir que aquellas personas que trabajan mas horas a la semana en promedio suelen ser personas jóvenes.
+
+Si analizamos ahora PC5, observamos que  las personas estarían ordenadas en cuando a su Capital Gain en un sentido, ponderando en sentido contrario la variable edad.
+
+## Variabilidad explicada
+
+```{r}
 plot(prcomp(Cuantitativo_DatosTrain,scale=T))
 summary(prcomp(Cuantitativo_DatosTrain,scale=T))
-par(mfrow=c(2,3))
-plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,1:2])
-plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,3)])
-plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,4)])
-plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(2,3)])
-plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(2,4)])
-plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(3,4)])
-
-## FALTA poner target con colores
 ```
+
+Esta parte es la más importante para saber cuántas componentes elegimos. En la fila `Proportion of Variance` podemos comprobar que la proporción de varianza que explica cada una de las componentes es prácticamente la misma (en torno al 20%). Esto ya es un indicador de que este análisis no nos aclara ni nos ayuda de manera explicita a entender mejor los datos. Finalmente, se reafirma lo que estábamos intuyendo ya que en `Cumulative proportion` podemos hacernos una idea del numero de componentes principales que vamos a necesitar.
+
+Nosotros consideramos que a partir de un 75% de variabilidad, ya es buen indicador. No obstante, este método se basa en la reducción de dimensionalidad, pero si en este caso, con el sesgo que hemos elegido, tenemos que emplear 4 componentes principales no nos resulta de gran utilidad este método.
+
+## Análisis de los graficos
+
+### PC1-PC2
+```{r}
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,1:2])
+```
+
+Puntos cercanos en el mapa indican comportamiento similar en cuanto a las personas que estamos considerando en la base de datos. Del gráfico podemos inferir que hay ciertos puntos extremos en cuanto a las variables `Age`, `FNLWGT`, `Capital Gain`, `Capital Loss` y `Hours`. Pero, ¿en qué sentido? 
+
+Esas personas situadas arriba a la izquierda de PC1 son personas con edad avanzada con un `Capital Gain` alto, `Capital Loss` alto, con muchas horas trabajadas a la semana y con un peso socio-económico (`FNLWGT`) muy bajo.
+
+En cuanto a PC2, tenemos comportamientos extremos unos 5-10 puntos (situados abajo a la derecha) y en 5 puntos situados arriba a la izquierda.
+
+  -	Vamos a analizar primero los 5-15 puntos. Son personas con un Capital Loss muy alto     y un Capital Gain muy bajo (esto lo sabemos gracias a los signos que nos proporciona     la tabla al realizar el summary).
+
+  -	Los otros puntos restantes son personas con un Capital Gain muy alto y con un         Capital Loss muy bajo.
+
+### PC1-PC3
+```{r}
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,3)])
+```
+
+Puntos cercanos en el mapa indican comportamiento similar en cuanto a las personas que estamos considerando en la base de datos. Del gráfico podemos inferir que hay ciertos puntos extremos en cuanto a las variables `Age`, `FNLWGT`, `Capital Gain`, `Capital Loss` y `Hours`.  Pero, ¿en qué sentido? 
+
+Esas personas situadas a la izquierda de PC1 son personas con edad avanzada con un `Capital Gain` alto, `Capital Loss` alto, con muchas horas trabajadas a la semana y con un peso socio-económico (`FNLWGT`) muy bajo.
+
+En cuanto a PC3, tenemos comportamientos extremos en apenas 2 solos puntos, situados en la esquina superior derecha. La interpretación que podemos extraer es que son dos personas cuyo peso socioeconómico (`FNLWGT`) es mucho mas alto que el promedio de las demás personas.
+
+### PC1-PC4
+```{r}
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,4)])
+```
+
+Puntos cercanos en el mapa indican comportamiento similar en cuanto a las personas que estamos considerando en la base de datos. Del gráfico podemos inferir que hay ciertos puntos extremos en cuanto a las variables Age`, `FNLWGT`, `Capital Gain`, `Capital Loss` y `Hours`. Pero, ¿en qué sentido?
+
+Esas personas situadas a la izquierda de PC1 son personas con edad avanzada con un `Capital Gain` alto, `Capital Loss` alto, con muchas horas trabajadas a la semana y con un peso socio-económico (`FNLWGT`) muy bajo.
+
+Analicemos en este punto PC4. En este sentido tenemos comportamientos extremos en 1 solo punto. Esa persona posee una edad muy avanzada y trabaja pocas horas a la semana.
+
+### Graficos restantes
+```{r}
+par(mfrow=c(2,3))
+### PC2-PC3
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(2,3)])
+### PC2-PC4
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(2,4)])
+### PC3-PC4
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(3,4)])
+```
+
+En cuanto a las otras 3 graficas restantes, el procedimiento es el mismo. Es decir, buscar posibles puntos (personas) extremos y analizar que propiedades tienen.
+
+Una pequeña barrera que tiene el PCA, es que solo tiene en cuenta las variables CUANTITATIVAS de la base de datos. Esto significa que no podemos asegurar ni extrapolar nada sobre las otras variables CUALITATIVAS que tenemos en nuestra base de datos en nuestro análisis de componentes principales.
+
+
+Para finalizar esta parte del trabajo vamos a realizar un gráfico `biplot` para ayudar a visualizar las relaciones entre variables y observaciones.
+
+## Grafico "biplot".
+```{r}
+biplot(pca)
+```
+
+Los estados casi se ordenan en la componente PC2 por Capital Gain en un sentido, y por Capital Loss en el otro, como ya hemos comprobado anteriormente.
 
 # Analisis Cluster
 ```{r}
