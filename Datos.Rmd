@@ -25,7 +25,7 @@ library(dplyr)
 library(ggplot2)
 library(gcookbook)
 library(stats)
-
+library(e1071)
 ```
 
 La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir si los ingresos de una serie de personas superan los 50000 dólares al año según los datos del censo. Esta base de datos fue extraida por Barry Becker del censo de 1994 y tiene 48842 observaciones y 14 variables.
@@ -456,7 +456,6 @@ table(modelo1, Datos_Test$Income.)
 
 ```{r}
 #Convertimos las variables cualitativas en factores
-
 Datos_con_Factores <- datos
 Datos_con_Factores[,2] = as.factor(Datos_con_Factores[,2])
 Datos_con_Factores[,4] = as.factor(Datos_con_Factores[,4])
@@ -467,19 +466,22 @@ Datos_con_Factores[,9] = as.factor(Datos_con_Factores[,9])
 Datos_con_Factores[,10] = as.factor(Datos_con_Factores[,10])
 Datos_con_Factores[,14] = as.factor(Datos_con_Factores[,14])
 Datos_con_Factores[,15] = as.factor(Datos_con_Factores[,15])
+```
 
-
-library(rpart)
+```{r}
+library(rpart) # Cargamos la librería rpart
 set.seed(123)
 Datos_con_Factores.rp <- rpart(Datos_con_Factores[,15] ~., data=Datos_con_Factores[,1:14], method="class", cp=0.0001, parms=list(split="information"))
+# summary(Datos_con_Factores.rp) <---No ayuda mucho a interpretar lo que sucede.
+```
 
-#graficamos y vemos el parámetro de complejidad
-plotcp(Datos_con_Factores.rp) #<-- El parametro de complejidad es 0,037. Nos quedamos con 0,03
+```{r}
+#Parámetro de complejidad
+plotcp(Datos_con_Factores.rp)
 printcp(Datos_con_Factores.rp)
+```
 
-
-# La grafica significa que combina la tasa de acierto con la profundidad del arbol. La forma de esta grfica significa que hay un momento en el cual la profundidad del arbol es mayor pero no mejora la tasa de acierto.
-
+```{r}
 Datos_Train_con_Factores = Datos_Train
 Datos_Train_con_Factores[,2] = as.factor(Datos_Train_con_Factores[,2])
 Datos_Train_con_Factores[,4] = as.factor(Datos_Train_con_Factores[,4])
@@ -501,52 +503,80 @@ Datos_Test_con_Factores[,9] = as.factor(Datos_Test_con_Factores[,9])
 Datos_Test_con_Factores[,10] = as.factor(Datos_Test_con_Factores[,10])
 Datos_Test_con_Factores[,14] = as.factor(Datos_Test_con_Factores[,14])
 Datos_Test_con_Factores[,15] = as.factor(Datos_Test_con_Factores[,15])
+```
+
+```{r}
+##Mirar
+Datos_Test_con_Factores_Mujeres = subset(Datos_Test_con_Factores,Datos_Test_con_Factores$Sex == " Female")
+```
 
 
-
+```{r}
 #Añadimos al train la fila que tiene Preschool pq esta en los test y no en el train
 Datos_Train_con_Factores <- rbind(Datos_Train_con_Factores, Datos_Test_con_Factores[c('209'),])
+```
 
-# Predict con todos los datos de la tabla
+## Predicciones Con el Árbol de Decisión 
+```{r}
 n=dim(Datos_con_Factores)[1]
 y.pred=predict(Datos_con_Factores.rp,Datos_con_Factores[,-c(15)])
+y.pred
+```
+Predict (EN FORMA DE PROBABILIDADES) con todos los datos de la tabla, basados en el arbol de decision `Datos_con_Factores.rp`.
+
+```{r}
 factores=colnames(y.pred)
 y.pred.fact=matrix(0,n,1)
 for (i in 1:n)
 y.pred.fact[i]= factores[which.max(y.pred[i,])]
 y.real.fact=Datos_con_Factores[,15]
 table(y.pred.fact,y.real.fact) #<-Tabla de predicciones frente a valor real de todos los datos.
+
 # sum(y.real.fact=="buff")
 # sum(y.real.fact=="sick")
+```
 
-
-
+```{r}
 x.train=Datos_Train_con_Factores
 x.test=Datos_Test_con_Factores
 
 #Datos train
-Datos_Train_con_Factores.rp <- rpart(x.train[,15] ~., data=x.train[,1:14], cp=0.04, parms=list(split="information"))
+Datos_Train_con_Factores.rp <- rpart(x.train[,15] ~., data=x.train[,1:14], cp=0.037, parms=list(split="information"))
+```
+Generamos un nuevo Árbol de Decisión, basado en el valor `cp = 0.037` obtenido en la parte anterior, y considerando ahora los datos de entrenamiento `x.train`.
+
+```{r}
 k=dim(x.train)[1]
 y.pred.train=predict(Datos_Train_con_Factores.rp, x.train[,-c(15)])
+y.pred.train
+```
+Predict (EN FORMA DE PROBABILIDADES) con los datos de entrenamiento, basados en el Arbol de decision `Datos_Train_con_Factores.rp`.
+
+```{r}
 factores=colnames(y.pred.train)
 y.pred.train.fact=matrix(0,k,1)
 for (i in 1:k)
 y.pred.train.fact[i]= factores[which.max(y.pred.train[i,])]
 y.real.train.fact=x.train[,15]
-table.rpart.train=table(y.pred.train.fact,y.real.train.fact)
+table(y.pred.train.fact,y.real.train.fact)
+```
 
-
-#datos test
+```{r}
+# Datos test
 ##Datos_Test_con_Factores = Datos_Test_con_Factores[Datos_Test_con_Factores$Education != 'Preschool',]
 m=dim(x.test)[1] #tamanno de la muestra de test
 y.pred.test=predict(Datos_Train_con_Factores.rp, x.test[,-c(15)])
+y.pred.test
+```
+Predict (EN FORMA DE PROBABILIDADES) con los datos de entrenamiento "Test", basados en el Arbol de decision `Datos_Train_con_Factores.rp`.
+
+```{r}
 factores=colnames(y.pred.test)
 y.pred.test.fact =factores[max.col(y.pred.test)]
 y.real.test.fact=x.test[,15]
-table.rpart.test=table(y.pred.test.fact,y.real.test.fact)
-
-
+table(y.pred.test.fact,y.real.test.fact)
 ```
+
 
 ```{r}
 #Random Forest
@@ -557,7 +587,6 @@ set.seed(123)
 # pues metemos una fila del train en el test y la quitamos y asi se relacionan
 x.test <- rbind(x.train[1,],x.test)
 x.test <- x.test[-1,]
-
 Datos_con_Factores.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
 y.pred.test.rf=predict(Datos_con_Factores.rf, x.test[,-c(15)])
 table.libreria.test=table(y.pred.test.rf,  as.factor(x.test[,15]))
@@ -566,21 +595,95 @@ table.libreria.train=table(y.pred.train.rf,  as.factor(x.train[,15]))
 print(table.libreria.test)
 print(table.libreria.train)
 
+library(dplyr)
+#Prediccion con sexo
+Datos_Test_con_Factores_Mujeres = subset(Datos_Test_con_Factores,Datos_Test_con_Factores$Sex == " Female")
+
+Datos_Test_con_Factores_Mujeres <- rbind(x.train[1,],Datos_Test_con_Factores_Mujeres)
+Datos_Test_con_Factores_Mujeres <- Datos_Test_con_Factores_Mujeres[-1,]
+
+Datos_Test_con_Factores_Hombre = subset(Datos_Test_con_Factores,Datos_Test_con_Factores$Sex == " Male")
+
+Datos_Test_con_Factores_Hombre <- rbind(x.train[1,],Datos_Test_con_Factores_Hombre)
+Datos_Test_con_Factores_Hombre <- Datos_Test_con_Factores_Hombre[-1,]
+
+Datos_con_Factores_SinSexo.rf <- randomForest(x.train[,-c(10,15)], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
+
+pred_Mujere_SinSexo.rf=predict(Datos_con_Factores_SinSexo.rf, Datos_Test_con_Factores_Mujeres[,-c(15)])
+table.pred_Mujere_SinSexo.rf=table(pred_Mujere_SinSexo.rf,  as.factor(Datos_Test_con_Factores_Mujeres[,15]))
+print(table.pred_Mujere_SinSexo.rf)
+
+
+pred_Mujere.rf=predict(Datos_con_Factores.rf, Datos_Test_con_Factores_Mujeres[,-c(15)])
+table.pred_Mujere.rf=table(pred_Mujere.rf,  as.factor(Datos_Test_con_Factores_Mujeres[,15]))
+print(table.pred_Mujere.rf)
+
+
+pred_Hombres_SinSexo.rf=predict(Datos_con_Factores_SinSexo.rf, Datos_Test_con_Factores_Hombre[,-c(15)])
+table.pred_Hombres_SinSexo.rf=table(pred_Hombres_SinSexo.rf,  as.factor(Datos_Test_con_Factores_Hombre[,15]))
+print(table.pred_Hombres_SinSexo.rf)
+
+
+pred_Hombre.rf=predict(Datos_con_Factores.rf, Datos_Test_con_Factores_Hombre[,-c(15)])
+table.pred_Hombre.rf=table(pred_Hombre.rf,  as.factor(Datos_Test_con_Factores_Hombre[,15]))
+print(table.pred_Hombre.rf)
 
 
 
 # Hay que ponerlo como factor y no se como se hace pq las predicciones las hemos hecho con factores, no se si se puede hacer el modelo sin factores. Luego hay que añadir un dato de x.train y quitarlo pq si no da error
-datoNuevo <- data.frame(Age = 38, Workclass = "Private", fnlwgt = 125467, Education = "Bachelors", Education.num = 13, Marital.status = "Divorced", Occupation. = "Sales", Relationship = "Husband", Race = "White", Sex = "Female", Capital.gain = 1500, Capital.loss = 2000, Hours.per.week = 40, Native.country = "United-States", Income. = ">50K")
+datoNuevo <- data.frame(Age = 38, Workclass = "Private", fnlwgt = 125467, Education = "Bachelors", Education.num = 13, Marital.status = "Divorced", Occupation. = "Sales", Relationship = "Husband", Race = "White", Sex = " Female", Capital.gain = 1500, Capital.loss = 2000, Hours.per.week = 40, Native.country = "United-States", Income. = "< = 50K")
 
 
-#datoNuevo <- datos[1,]
+
+
+datoNuevo <- datos[1,]
 
 datoNuevo <- rbind(x.train[1,],datoNuevo)
 datoNuevo <- datoNuevo[-1,]
 
 
 prediccionDatoNuevo=predict(Datos_con_Factores.rf, datoNuevo)
+prediccionDatoNuevo
 
+
+
+datoNuevo <- data.frame(Age = 38, Workclass = "Private", fnlwgt = 125467, Education = "Bachelors", Education.num = 13, Marital.status = "Divorced", Occupation. = "Sales", Relationship = "Husband", Race = "White", Sex = " Male", Capital.gain = 1500, Capital.loss = 2000, Hours.per.week = 40, Native.country = "United-States", Income. = "< = 50K")
+
+
+
+
+datoNuevo <- datos[1,]
+
+datoNuevo <- rbind(x.train[1,],datoNuevo)
+datoNuevo <- datoNuevo[-1,]
+
+
+prediccionDatoNuevo=predict(Datos_con_Factores.rf, datoNuevo)
+prediccionDatoNuevo
+
+```
+
+#SVM
+```{r}
+gamma_est = 1/apply(Cuantitativo_DatosTrain, 2, sd)
+norma2 = function(x) sqrt(sum(x^2))
+cost_est = apply(Cuantitativo_DatosTrain, 2, norma2)
+
+
+# Calculamos el modelo utilizando RBF
+svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
+
+svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
+
+# Predecimos
+
+pred1 = predict(svm1, Cuantitativo_DatosTest)
+
+pred2 = predict(svm1, Cuantitativo_DatosTrain)
+# Calculamos la matriz de confusión
+
+table(pred1, x.test[,15])
+table(pred2, as.factor(Cualitativo_DatosTrain$Income))
 
 ```
 
