@@ -27,12 +27,11 @@ library(gcookbook)
 library(stats)
 library(e1071)
 ```
-
 La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir si los ingresos de una serie de personas superan los 50000 dólares al año según los datos del censo. Esta base de datos fue extraida por Barry Becker del censo de 1994 y tiene 48842 observaciones y 14 variables.
 
 # Leemos los datos
 
-La base de datos que vamos a leer contiene sólo 1550 obervaciones. Esto se debe a que hemos escogido una muestra y lo que hemos hecho es eliminar los datos directamente de la base de datos, es decir, dentro del Excel. Además, aunque la base de datos original contiene valores nulos, nosotros nos hemos fijado en ellos y al ser pocos, un (calcular porcentaje)%, y ver que no son importantes los hemos decidido eliminar.
+La base de datos que vamos a leer contiene sólo 1550 obervaciones. Esto se debe a que hemos escogido una muestra de la base de datos y lo que hemos hecho es eliminar los datos directamente de la base de datos, es decir, dentro del Excel. Además, aunque la base de datos original contiene valores nulos, nosotros nos hemos fijado en ellos y al ser pocos, un (calcular porcentaje)%, y ver que no son importantes los hemos decidido eliminar.
 
 ```{r}
 # Leemos los datos
@@ -68,113 +67,316 @@ Lo que pretendemos conseguir a partir de nuestros datos es predecir si los ingre
 
 Para ello vamos a realizar un análisis de los datos. Vamos a empezar viendo las variables que tenemos que estudiar.
 
+
 Age (edad): Variable de tipo númerico que expresa la edad de la persona.
   * El rango de valores de la edad está entre 17 y 90.
 
-Workclass (clase de trabajo): Variable de tipo categórico que expresa la clase de trabajo que tiene la persona. Puede tomar los siguientes valores.
-  * Private, persona con empleo privado
-  * Self-emp-not-inc, autónomo
-  * Self-emp-inc, personas que trabajan de forma independiente y han establecido       una incorporación para su negocio o actividad laboral.
-  * Federal-gov, funcionario del gobierno federal
-  * Local-gov, funcionario del gobierno local
-  * State-gov, funcionario del gobierno estatal
-  * Without-pay, persona no empleada de manera remunerada (jubilados,                  voluntariados...)
-  * Never-worked, personas que nunca han trabajado
-  
-  
-  
-  
-  
-  
 
-fnlwgt (peso socio-económico): Variable de tipo
-Education (educación): Variable de tipo
-Education num (número de educación): Variable de tipo
-Marital status (estado civil): Variable de tipo
-Occupation (ocupación): Variable de tipo
-Relationship (relación): Variable de tipo
-Race (raza): Variable de tipo
-Sex (sexo): Variable de tipo
-Capital gain (capital ganado): Variable de tipo
-Capital loss (capital perdido): Variable de tipo
-Hours per week (horas por semana): Variable de tipo
-Native country (país de nacimiento): Variable de tipo
-Income ():
+Workclass (clase de trabajo): Variable de tipo categórico que expresa la clase de trabajo que tiene la persona. Puede tomar los siguientes valores.
+  * Private, persona con empleo privado.
+  * Self-emp-not-inc, autónomo.
+  * Self-emp-inc, personas que trabajan por cuenta propia en una incorporación o negocio propio. 
+  * Federal-gov, funcionario del gobierno federal.
+  * Local-gov, funcionario del gobierno local.
+  * State-gov, funcionario del gobierno estatal.
+  * Without-pay, persona no empleada de manera remunerada (jubilados, voluntariados...).
+  * Never-worked, personas que nunca han trabajado.
+  
+  
+fnlwgt (peso socio-económico): Variable de tipo númerico que representa el peso socio económico. 
+
+
+Education (educación): Variable de tipo categórico que representa el nivel educativo alcanzado por una persona. Puede tomar los siguientes valores.
+  * Bachelors, grado universitario.
+  * Some-college, universitarios sin licenciatura.
+  * 11th, 11º de secundaria.
+  * HS-grad, graduado en secundaria.
+  * Prof-school, educación profesional, tras obtener una licenciatura.
+  * Assoc-acdm, título de asociado en un campo académico.
+  * Assoc-voc, título de asociado en un campo vocacional.
+  * 9th, 9º de secundaria.
+  * 7th-8th, 7º y 8º de secundaria.
+  * 12th, 12º de secundaria.
+  * Masters, máster universitario.
+  * 1st-4th, 1º a 4º de secundaria.
+  * 10th, 10º de secundaria.
+  * Doctorate, doctorado.
+  * 5th-6th, 5º y 6º de secundaria.
+  * Preschool, preescolar.
+
+
+Education num (número de educación): Variable de tipo númerico que representa los valores anteriores. Cada categoría tiene asociado un número, donde un mayor valor significa mayor nivel de estudio.
+
+
+Marital status (estado civil): Variable de tipo categórica que describe el estado civil de un individuo. Puede tomar los siguientes valores.
+  * Married-civ-spouse, casado con cónyuge civil.
+  * Divorced, divorciado.
+  * Never-married, nunca casado.
+  * Separated, separado.
+  * Widowed, viudo.
+  * Married-spouse-absent, casado, con cónyuge ausente.
+  * Married-AF-spouse, casado, con cónyuge en las Fuerzas Armadas.
+
+
+Occupation (ocupación): Variable de tipo categórica que describe el tipo de trabajo de la persona. Puede tomar los siguientes valores.
+  * Tech-support, soporte técnico.
+  * Craft-repair, reparación.
+  * Other-service, otros servicios.
+  * Sales, ventas.
+  * Exec-managerial, ejecutivo o gerencial.
+  * Prof-specialty, especialidad profesional.
+  * Handlers-cleaners, manipuladores y limpiadores.
+  * Machine-op-inspct, operadores de máquinas e inspectores.
+  * Adm-clerical, administrativo.
+  * Farming-fishing, agricultura y pesca.
+  * Transport-moving, transporte y mudanzas.
+  * Priv-house-serv, servicio doméstico privado.
+  * Protective-serv, servicios de protección (policía o bombero).
+  * Armed-Forces, fuerzas armadas.
+
+
+Relationship (relación): Variable de tipo categórica que describe el tipo de posición familiar de la persona. Puede tomar los siguientes valores.
+  * Wife, esposo.
+  * Own-child, hijo único.
+  * Husband, marido/mujer.
+  * Not-in-family, no pertenece a la familia.
+  * Other-relative, otro pariente.
+  * Unmarried, no casado.
+
+
+Race (raza): Variable de tipo categórica que describe la raza de la persona. Puede tomar los siguientes valores.
+  * White, blanco.
+  * Asian-Pac-Islander, asiático-isleño del Pacífico.
+  * Amer-Indian-Eskimo, nativos americanos o indígenas americanos.
+  * Other, otro.
+  * Black, negro.
+
+
+Sex (sexo): Variable de tipo binaria que representa el sexo de la persona, puede tomar el valor de mujer (Female) y hombre (Male).
+
+
+Capital gain (capital ganado): Variable de tipo numérica que se refiere a la ganancia de capital, es la diferencia positiva entre el precio de venta y el precio de compra en una inversión.
+
+
+Capital loss (capital perdido): Variable de tipo numérica que se refiere a la pérdida de capital, es la diferencia negativa entre el precio de compra y el precio de venta en una inversión.
+
+
+Hours per week (horas por semana): Variable de tipo númerico que indica las horas trabajadas por semana por la persona.
+
+
+Native country (país de nacimiento): Variable de tipo categórica que indica el país en el que ha nacido la persona. Puede tomar los siguientes valores. United-States, Cambodia, England, Puerto-Rico,       Canada, Germany, Outlying-US(Guam-USVI-etc), India, Japan, Greece, South, China, Cuba, Iran, Honduras, Philippines, Italy, Poland, Jamaica, Vietnam, Mexico, Portugal, Ireland, France, Dominican-Republic, Laos, Ecuador, Taiwan, Haiti, Columbia, Hungary, Guatemala, Nicaragua, Scotland, Thailand, Yugoslavia, El-Salvador, Trinadad&Tobago, Peru, Hong, Holand-Netherlands.	
+
+
+Income (Ingresos): Variable objetivo de tipo binaria que representa los ingresos de la persona. Puede ser <=50K, si gana menos de 50000 dólares al año, o >50K si gana más de 50000 dólares al año.
+
+De las variables cuantitativas anteriores, las variables Age, Education-num y Hours per week son discretas, ya que pueden tomar valores finitos, sin embargo, las variables fnlgwt, capital gain y capital loss son variables continuas, ya que pueden tomar infinitos valores.
+
+Con el siguiente comando podemos ver un resumen de los datos, nos muestra el tipo de datos y los posibles valores que toma (los que hemos explicado antes).
+
 ```{r}
 str(datos)
 ```
 
-Hacemos un resumen rapido de los datos con la funcion summary:
+Hacemos un resumen estadístico de los datos con la función summary, ésta función nos va a dar en las variables cuantitativas, los principales valores estadísticos como son el mínimo, 1º, 2º y 3º cuartil, media y máximo. En las variables cuantitativas nos va a dar la cantidad de observaciones.
 
 ```{r}
-
-Cualitativo_Datos = data.frame(WorkClass=datos$Workclass,Education=datos$Education,EstadoCivil=datos$Marital.status,Occupation=datos$Occupation.,RelationShip=datos$Relationship,Race=datos$Race,Sex=datos$Sex,NativeCountry=datos$Native.country,Income=datos$Income.)
-
-Cuantitativo_DatosTrain= data.frame(Age=Datos_Train$Age,FNLWGT=Datos_Train$fnlwgt,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Hours=Datos_Train$Hours.per.week)
-
-Cualitativo_DatosTrain=data.frame(WorkClass=Datos_Train$Workclass,Education=Datos_Train$Education,EstadoCivil=Datos_Train$Marital.status,Occupation=Datos_Train$Occupation.,RelationShip=Datos_Train$Relationship,Race=Datos_Train$Race,Sex=Datos_Train$Sex,NativeCountry=Datos_Train$Native.country,Income=Datos_Train$Income.)
-
-Cuantitativo_DatosTest= data.frame(Age=Datos_Test$Age,FNLWGT=Datos_Test$fnlwgt,CapitalGain=Datos_Test$Capital.gain,CapitalLoss=Datos_Test$Capital.loss,Hours=Datos_Test$Hours.per.week)
-
-summary(Cuantitativo_DatosTrain)
-
-# summary(datos[,c("Age","fnlwgt","Education.num","Capital.gain","Capital.loss","Hours.per.week")])
-media = mean(datos$Capital.gain, na.rm =  TRUE) # le decimos que no tenga en cuenta los NA al hacer la media
+# Hacemos el resumen estadístico de los datos cuantitativos
+summary(datos)
 ```
+
+Con el comando "describe()" obtenemos un resumen detallado de las variables del conjunto de datos. Para las variables numéricas nos proporciona los valores del summary, la desviación estándar, los valores menores y mayores. Para las categóricas, por cada variable, nos proporciona la frecuencia y la proporción de cada una de las categorias de la variable. En ambos casos nos proporciona el número de observaciones, los valores faltantes y la cantidad de valores distintos.
+
 ```{r}
 library(Hmisc)
 describe(datos)
 ```
-```{r}
-#Grafico pairs
 
-#Cuantitativo2= data.frame(Age=Datos_Train$Age,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Horas=Datos_Train$Hours.per.week)
+Vamos a ver cuantas observaciones hay para cada opción de la variable respuesta.
+```{r}
+table(datos$Income.)
+
+```
+Vemos que aproximadamente el 75% de la  muestra, cobra menos de 50000 dólares al año. Esto se debe a que la mayoría de las personas cobran menos de esta cantidad, luego la muestra refleja la realidad de la sociedad. No podríamos coger una muestra igualitaria porque si no las predicciones no serían reales.
+
+
+Vamos a realizar diferentes tablas dividiendo los datos en train y test y además, por cada uno de estos haremos 2 tablas, una con las variables cualitativas y otro con las cuantitativas.
+
+```{r}
+# Tabla que contiene los datos de las variables cuantitativas 
+Cuantitativo_Datos= data.frame(Age=datos$Age,FNLWGT=datos$fnlwgt,CapitalGain=datos$Capital.gain,CapitalLoss=datos$Capital.loss,Hours=datos$Hours.per.week)
+
+# Tabla que contiene los datos de las variables cualitativos 
+Cualitativo_Datos = data.frame(WorkClass=datos$Workclass,Education=datos$Education,EstadoCivil=datos$Marital.status,Occupation=datos$Occupation.,RelationShip=datos$Relationship,Race=datos$Race,Sex=datos$Sex,NativeCountry=datos$Native.country,Income=datos$Income.)
+```
+
+```{r}
+# Tabla que contiene los datos de la parte train de las variables cuantitativas 
+Cuantitativo_DatosTrain= data.frame(Age=Datos_Train$Age,FNLWGT=Datos_Train$fnlwgt,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Hours=Datos_Train$Hours.per.week)
+
+# Tabla que contiene los datos de la parte train de las variables cualitativas
+Cualitativo_DatosTrain=data.frame(WorkClass=Datos_Train$Workclass,Education=Datos_Train$Education,EstadoCivil=Datos_Train$Marital.status,Occupation=Datos_Train$Occupation.,RelationShip=Datos_Train$Relationship,Race=Datos_Train$Race,Sex=Datos_Train$Sex,NativeCountry=Datos_Train$Native.country,Income=Datos_Train$Income.)
+```
+
+```{r}
+# Tabla que contiene los datos de la parte test de las variables cuantitativas
+Cuantitativo_DatosTest= data.frame(Age=Datos_Test$Age,FNLWGT=Datos_Test$fnlwgt,CapitalGain=Datos_Test$Capital.gain,CapitalLoss=Datos_Test$Capital.loss,Hours=Datos_Test$Hours.per.week)
+
+# Tabla que contiene los datos de la parte test de las variables cualitativas
+Cualitativo_DatosTrain=data.frame(WorkClass=Datos_Test$Workclass,Education=Datos_Test$Education,EstadoCivil=Datos_Test$Marital.status,Occupation=Datos_Test$Occupation.,RelationShip=Datos_Test$Relationship,Race=Datos_Test$Race,Sex=Datos_Test$Sex,NativeCountry=Datos_Test$Native.country,Income=Datos_Test$Income.)
+```
+
+Vamos a realizar un gráfico en el que se van a comparar las variables númericas dos a dos, para ver que variables están mayormente relacionadas. Para realizar el gráfico usamos la función "pairs()".
+
+```{r}
+# Pairs para ver la relacion entre variables dos a dos
 attach(Datos_Train)
 pairs(Cuantitativo_DatosTrain)
-plot(Age,Hours.per.week)
+```
+
+En estas gráficas no se puede apreciar que haya ningún tipo de relación entre las variables númericas, ya que las nubes de puntos se distribuyen de forma aleatoria y sin mostrar ningun patrón. Para comprobar esto, vamos a realizar una matriz de correlación entre estas variables.
+
+```{r}
 cor(Cuantitativo_DatosTrain)
 ```
 
+Con la matriz, nos damos cuenta de que las variables númericas no están correlacionadas, la mayor correlación que hay es de 0.10886121, que es un valor muy bajo, luego no existe ningún tipo de correlación.
 
 # Análisis bivariado
+Vamos a ver que distribución siguen algunas de las variables, para ello vamos a realizar un gráfico pairs() donde también se muestran los histogramas de cada variable.
+
+```{r echo=TRUE}
+panel.hist <- function(x, ...)
+{
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(usr[1:2], 0, 1.5) )
+    h <- hist(x, plot = FALSE)
+    breaks <- h$breaks; nB <- length(breaks)
+    y <- h$counts; y <- y/max(y)
+    rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...)
+}
+
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
+{
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(0, 1, 0, 1))
+    r <- abs(cor(x, y))
+    txt <- format(c(r, 0.123456789), digits = digits)[1]
+    txt <- paste0(prefix, txt)
+    if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+    text(0.5, 0.5, txt, cex = cex.cor * r)
+}
+
+pairs(Cuantitativo_Datos,upper.panel=panel.cor,diag.panel=panel.hist)
+names(Cuantitativo_Datos)
+```
+Con este gráfico podemos ver los histogramas de cada variables, con lo que podríamos ver que distribución sigue cada variable cuantitativa.
+
+PREGUNTAR
+no se que distribucion siguen si es q siguen alguna hours parece una normal.
+
+Vamos a ver la distribucion de las cualitativas haciendo sus histogramas.
 
 ```{r}
-#Diagramas de dispersion
-qplot(Hours.per.week, fnlwgt, data = datos, colour = factor(Sex))+ geom_smooth()+
-ggtitle('Relación horas trabajadas por salario.Por género')
+ggplot(data = datos) +
+geom_bar(mapping = aes(x = datos$Workclass))
 
+ggplot(data = datos) +
+geom_bar(mapping = aes(x = datos$Education))+ coord_flip()
+
+ggplot(data = datos) +
+geom_bar(mapping = aes(x = datos$Marital.status))+ coord_flip()
+
+ggplot(data = datos) +
+geom_bar(mapping = aes(x = datos$Occupation.))+ coord_flip()
+
+ggplot(data = datos) +
+geom_bar(mapping = aes(x = datos$Relationship))
+
+ggplot(data = datos) +
+geom_bar(mapping = aes(x = datos$Race))
+
+ggplot(data = datos) +
+geom_bar(mapping = aes(x = datos$Sex))
+
+ggplot(data = datos) +
+geom_bar(mapping = aes(x = datos$Native.country))+ coord_flip()
+```
+PREGUNTAR
+De la gráfica del país de nacimiento, vemos que la gran parte de la muestra nacieron en EEUU, luego para las predicciones, si usamos datos de otros países, donde la mayor parte de los datos en media pueden cambiar, no van a ser tan fiables. 
+
+Vamos a realizar gráficos para comparar distintas variables con la variable respuesta.
+Gráficos para comparar el income con las diferentes categorías de las variables
+```{r}
 # Comparacion del income con las edades 
 ggplot(Datos_Train, aes(x = Age, fill = Income.)) + geom_bar()
-# Comparacion del income con la WorkClass 
-ggplot(Datos_Train, aes(x = Workclass, fill = Income.)) + geom_bar()
-# Comparacion del income con la Ocupacion 
-ggplot(Datos_Train, aes(x = Occupation., fill=Income.)) + geom_bar() + coord_flip()# Comparacion del income con las educacion 
-ggplot(Datos_Train, aes(x = Education, fill = Income.)) + geom_bar() + coord_flip()
-# Comparacion del income con el sexo 
-ggplot(Datos_Train, aes(x = Sex, fill = Income.)) + geom_bar()
-# Comparacion del income con las MaritalStatus 
-ggplot(Datos_Train, aes(x = Marital.status, fill = Income.)) + geom_bar()
-# Comparacion del income con las pais 
-ggplot(Datos_Train, aes(x = Native.country, fill=Income.)) + geom_bar() + coord_flip()
-
-
-# HACER BOXPLOT NO HE HECHO PORQUE NO LOS ENTIENDO
-# LOS HISTOGRAMAS PARA MI NO TIENEN MUCHO SENTIDO
-
 ```
+
+En esta gráfica, podemos que hay más personas que cobran menos de 50000 dólares anuales y además, podemos ver que la mayor parte de las personas que cobran más de está cantidad tienen entorno a 40 años. Además, entorno a esta edad, la mitad de las personas cobran menos de está cantidad y la otra mitad más.
 
 ```{r}
-
-#Histograma para la variable edad
-ggplot(Cuantitativo_DatosTrain, aes(x = Age)) +
-geom_histogram(fill="white", colour="black") +
-ggtitle('Histograma de numero de valores de la edad asociada')
-
-#Resto histogramas
-
+# Comparacion del income con la Ocupacion 
+ggplot(Datos_Train, aes(x = Occupation., fill=Income.)) + geom_bar() + coord_flip()
 ```
-Estudiamos la relacion entre las variables *sexo* y *capital.gain*
+En este gráfico, podemos ver que en la mayoría de los trabajos, las personas cobran menos de 50000 dólares anuales, pero tambien podemos observar ciertas características importantes. Podemos ver que en el trabajo de Exec-managerial (ejecutivo) la mitad de las personas cobran más de 50000, que es un alto porcentaje comparado con los demás datos. En las variables de Prof-specialty, Craft_repair, sales y Transport-moving, el porcentaje es alto, siendo en la primera de estas entorno a un 33% y en las restantes entorno a un 25%. Además, en las variables Handlers-cleaners, Armed-Forces y Priv-house-serve todas las observaciones cobran menos de 50000.
 
+```{r}
+# Comparacion del income con las educacion 
+ggplot(Datos_Train, aes(x = Education, fill = Income.)) + geom_bar() + coord_flip()
+```
+En este gráfico, podemos ver que con los estudios de Prof-school y Doctorate, el porcentaje para de cobrar más de 50000 dólares es muy alto, luego con estos estudios tienes una alta probabilidad de cobrar más de dicha cantidad. Sin embargo, vemos que en los estudios de la de 1º a 12º curso, el porcentaje es muy najo, luego hay pocas probabilidades de cobrar más de dicha cantidad.
+
+```{r}
+# Comparacion del income con el sexo 
+ggplot(Datos_Train, aes(x = Sex, fill = Income.)) + geom_bar()
+```
+Con este gráfico, podemos ver que tanto en hombres como en mujeres, la mayor cantidad de personas gana menos de 50000 dólares anuales.
+
+Además podemos hacer una comparación entre ambos sexos para ver si en proporción hay más mujeres u hombres que cobren más de 50000 dólares anuales.
+
+```{r}
+# Filtramos el número de mujeres que ganan menos de 50000
+mujeres_menorDeCincuentaK <- subset(Datos_Train, Sex == " Female" & Income. == " <=50K")
+
+# Contamos el número de mujeres con ingresos menores a $50,000
+NumMujeres_menorDeCincuentaK <- nrow(mujeres_menorDeCincuentaK)
+NumMujeres_menorDeCincuentaK
+
+# Miramos el número total de mujeres que hay en la tabla Datos_Train
+table(Datos_Train$Sex)
+
+# El porcentaje es
+214/248 * 100
+```
+
+Hacemos lo mismo para los hombres
+
+```{r}
+# Filtramos el número de hombres que ganan menos de 50000
+hombres_menorDeCincuentaK <- subset(Datos_Train, Sex == " Male" & Income. == " <=50K")
+
+# Contamos el número de hombres con ingresos menores a $50,000
+NumHombres_menorDeCincuentaK <- nrow(hombres_menorDeCincuentaK)
+NumHombres_menorDeCincuentaK
+
+# Miramos el número total de hombres que hay en la tabla Datos_Train
+table(Datos_Train$Sex)
+
+# El porcentaje es
+370/527 * 100
+```
+Para las mujeres obtenemos que el 86% cobra menos de 50000 y para hombres este porcentaje es del 70%. Como la diferencia es del 15%, que es una diferencia pequeña, no podemos afirmar que sea más probable que los hombres suelan cobrar más de 50000 y que para las mujeres esto suceda en menor medida. De igual manera, este caso lo volveremos a tratar más adelante para confirmar nuestras sospechas.
+
+
+Por último, vamos a realizar gráficos de boxplot, en estos gráficos podemos observar valores atípicos en los datos así como medidas resumidas.
+
+La línea en el centro de la caja representa la mediana, la caja representa el rango intercuartil, que es la diferencia entre el tercer cuartil y el primer cuartil, y proporciona una medida de la dispersión de los datos en la mitad central. Los bigotes salen de la caja y llegan hasta los valores mínimos y máximos y los puntos que se salen de los bigotes representan valores atípicos. Además, la forma de la caja da información sobre la distribución de los datos y la longitud de los bigotes, nos dan información de la variabilidad de los datos. 
+```{r}
+boxplot(Cuantitativo_Datos$Age, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
+boxplot(Cuantitativo_Datos$FNLWGT, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
+boxplot(Cuantitativo_Datos$CapitalGain, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
+boxplot(Cuantitativo_Datos$CapitalLoss, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
+boxplot(Cuantitativo_Datos$Hours, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
+```
 
 
 #Análisis de Componentes Principales
@@ -418,8 +620,14 @@ plot(fit7, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
 
 
 ##
-## FALTA HACER UN CLUSTER DE LOS PCA
+## FALTA HACER UN CLUSTER DE LOS PCA (hecho es lo copiado justo debajo(NO LO QUITO PARA AVISAROS))
 ##
+
+
+clusters7.datos_PCA <- clusters7.datos$cluster
+library(cluster)
+clusplot(DatosTrainEscalados, clusters7.datos_PCA, color=TRUE, shade = TRUE, labels = 7, lines = 0)
+
 
 #library(factoextra)
 #fviz_cluster(clusters7.datos, data = Cuantitativo_DatosTrain)
@@ -578,90 +786,107 @@ table(y.pred.test.fact,y.real.test.fact)
 ```
 
 
+PREGUNTAR donde va esto
+En la predicción para los datos del test nos daba un error de que había un valor que no existía, esto era porque en los datos test hay 2 observaciones en las que la variable education toman el valor de Preschool. Pero, estas son las dos únicas observaciones de la muestra, luego en los datos pertenecientes al train no existen observaciones donde se tomen estos valores, luego al crear el árbol, éste no tiene en cuenta dicha categoría, luego al después metersela para que prediga da un error.
+
+
+# RANDOM FOREST
+
+Un Bosque de Árboles es un conjunto de Árboles de Decisión donde cada árbol se entrena de manera independiente con una muestra aleatoria de los datos de entrenamiento y realiza predicciones. La predicción final del bosque se obtiene al promediar las predicciones de todos los árboles individuales. En estos, los nodos terminales contienen pocas observaciones, además, si dos observaciones caen en el mismo nodo terminal, entonces estas tienen mayor similaridad.
+
+PREGUNTAR
+Vamos a realizar un random forest con nuestra muestra train y luego vamos a predecir la muestra del test y comentar los resultados para ver la precisión, exactitud...
+
+Al crear el random forest con los datos del train y luego predecir los del test nos da un error de que las variables no coinciden. Para solucionarlo, como realmente si que coinciden, lo que hemos hecho es añadir la primera observacion de los datos train a los datos test y luego borrarsela. De esta manera las tablas se relacionan y no se produce este error.
 ```{r}
-#Random Forest
-#RANDOM Forest Cleveland
 library(randomForest)
 set.seed(123)
-#Como da error en el test y no tiene sentido, es algo de que no estan relacionadas las tablas del train y del test
-# pues metemos una fila del train en el test y la quitamos y asi se relacionan
+
+# Añadimos la primera fila de la tabla train a la tabla del test
 x.test <- rbind(x.train[1,],x.test)
+# Se la eliminamos
 x.test <- x.test[-1,]
+# Creamos el random forest
 Datos_con_Factores.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
-y.pred.test.rf=predict(Datos_con_Factores.rf, x.test[,-c(15)])
-table.libreria.test=table(y.pred.test.rf,  as.factor(x.test[,15]))
+
+# Predecimos para cada una de las obsesrvaciones de los datos del train la variable respuesta.
 y.pred.train.rf= predict(Datos_con_Factores.rf, x.train[,-c(15)])
 table.libreria.train=table(y.pred.train.rf,  as.factor(x.train[,15]))
-print(table.libreria.test)
+# Predecimos para cada una de las obsesrvaciones de los datos del test la variable respuesta.
+y.pred.test.rf=predict(Datos_con_Factores.rf, x.test[,-c(15)])
+table.libreria.test=table(y.pred.test.rf,  as.factor(x.test[,15]))
+# Imprimimos los resultados
 print(table.libreria.train)
+print(table.libreria.test)
+
+```
+Como vemos en los resultados, los datos del train los predice todos bien, esto es normal ya que ha sido entrenado con estos datos y los árboles han sido creados a través de estos.
+
+En los resultados de las predicciones del test podemos ver que para los 298 que tienen unos ingresos menores de 50000, predice bien 258, que son los verdaderos negativos (TN), y a 40 los predice mal, que son los falsos negativos (FN). Por otra parte, vemos que para los 89 que realmente ganan más de 50000, predice bien 54, que corresponden con los verdaderos positivos (TP) y mal a 35, que osn los falsos positivos (FP).
+
+Estos datos nos muestra que el random forest tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+```{r}
+(258+54)/387
+```
+De manera recíproca tiene un error del 19.38% (FP+FN)/N
+```{r}
+(40+35)/387
+```
+Además, tiene una precisión del 60.67% TP/(TP+FP). Que no es muy alta pero está bien, luego el modelo no es muy preciso con las predicciones.
+```{r}
+54/(54+35)
+```
+Ahora vamos a ver si existe sesgo de sexo en las predicciones para evitar discriminaciones injustas. Para ello vamos a realizar un random forest en el que no se incluya la variable sexo y vamos a realizar las predicciones para las observaciones de las mujeres de los datos del test. Para estas mismas, vamos a realizar las predicciones usando el modelo anterior (en el que se usa la variable sexo), y vamos a comparar ambas predicciones para identificar si existe sesgo. Haremos lo mismo para los hombres.
+
+```{r}
 
 library(dplyr)
-#Prediccion con sexo
+# Creamos una tabla con las observaciones que sean mujeres de los datos test
 Datos_Test_con_Factores_Mujeres = subset(Datos_Test_con_Factores,Datos_Test_con_Factores$Sex == " Female")
 
+# Le añadimos la primera fila de los datos del train y se la quitamos para asociar las tablas y que no se produzca un error
 Datos_Test_con_Factores_Mujeres <- rbind(x.train[1,],Datos_Test_con_Factores_Mujeres)
 Datos_Test_con_Factores_Mujeres <- Datos_Test_con_Factores_Mujeres[-1,]
 
+# Creamos una tabla con las observaciones que sean hombres de los datos test
 Datos_Test_con_Factores_Hombre = subset(Datos_Test_con_Factores,Datos_Test_con_Factores$Sex == " Male")
 
+# Le añadimos la primera fila de los datos del train y se la quitamos para asociar las tablas y que no se produzca un error
 Datos_Test_con_Factores_Hombre <- rbind(x.train[1,],Datos_Test_con_Factores_Hombre)
 Datos_Test_con_Factores_Hombre <- Datos_Test_con_Factores_Hombre[-1,]
+```
 
+```{r}
+# Creamos un random forest con todas las observaciones del train pero sin usar la variable sexo
 Datos_con_Factores_SinSexo.rf <- randomForest(x.train[,-c(10,15)], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
 
-pred_Mujere_SinSexo.rf=predict(Datos_con_Factores_SinSexo.rf, Datos_Test_con_Factores_Mujeres[,-c(15)])
-table.pred_Mujere_SinSexo.rf=table(pred_Mujere_SinSexo.rf,  as.factor(Datos_Test_con_Factores_Mujeres[,15]))
-print(table.pred_Mujere_SinSexo.rf)
+# Hacemos la prediccion de las mujeres usando el random forest sin la variable sexo 
+pred_Mujeres_SinSexo.rf=predict(Datos_con_Factores_SinSexo.rf, Datos_Test_con_Factores_Mujeres[,-c(15)])
+table.pred_Mujeres_SinSexo.rf=table(pred_Mujeres_SinSexo.rf,  as.factor(Datos_Test_con_Factores_Mujeres[,15]))
+print(table.pred_Mujeres_SinSexo.rf)
 
+# Hacemos la prediccion de las mujeres usando el random forest con la variable sexo 
+pred_Mujeres.rf=predict(Datos_con_Factores.rf, Datos_Test_con_Factores_Mujeres[,-c(15)])
+table.pred_Mujeres.rf=table(pred_Mujeres.rf,  as.factor(Datos_Test_con_Factores_Mujeres[,15]))
+print(table.pred_Mujeres.rf)
+```
+Podemos ver que en ambos casos la predicción es la misma, luego podemos decir que para las mujeres no hay sesgo de sexo.
+```{r}
 
-pred_Mujere.rf=predict(Datos_con_Factores.rf, Datos_Test_con_Factores_Mujeres[,-c(15)])
-table.pred_Mujere.rf=table(pred_Mujere.rf,  as.factor(Datos_Test_con_Factores_Mujeres[,15]))
-print(table.pred_Mujere.rf)
-
-
+# Hacemos la prediccion de los hombres usando el random forest sin la variable sexo 
 pred_Hombres_SinSexo.rf=predict(Datos_con_Factores_SinSexo.rf, Datos_Test_con_Factores_Hombre[,-c(15)])
 table.pred_Hombres_SinSexo.rf=table(pred_Hombres_SinSexo.rf,  as.factor(Datos_Test_con_Factores_Hombre[,15]))
 print(table.pred_Hombres_SinSexo.rf)
 
-
-pred_Hombre.rf=predict(Datos_con_Factores.rf, Datos_Test_con_Factores_Hombre[,-c(15)])
-table.pred_Hombre.rf=table(pred_Hombre.rf,  as.factor(Datos_Test_con_Factores_Hombre[,15]))
-print(table.pred_Hombre.rf)
-
-
-
-# Hay que ponerlo como factor y no se como se hace pq las predicciones las hemos hecho con factores, no se si se puede hacer el modelo sin factores. Luego hay que añadir un dato de x.train y quitarlo pq si no da error
-datoNuevo <- data.frame(Age = 38, Workclass = "Private", fnlwgt = 125467, Education = "Bachelors", Education.num = 13, Marital.status = "Divorced", Occupation. = "Sales", Relationship = "Husband", Race = "White", Sex = " Female", Capital.gain = 1500, Capital.loss = 2000, Hours.per.week = 40, Native.country = "United-States", Income. = "< = 50K")
-
-
-
-
-datoNuevo <- datos[1,]
-
-datoNuevo <- rbind(x.train[1,],datoNuevo)
-datoNuevo <- datoNuevo[-1,]
-
-
-prediccionDatoNuevo=predict(Datos_con_Factores.rf, datoNuevo)
-prediccionDatoNuevo
-
-
-
-datoNuevo <- data.frame(Age = 38, Workclass = "Private", fnlwgt = 125467, Education = "Bachelors", Education.num = 13, Marital.status = "Divorced", Occupation. = "Sales", Relationship = "Husband", Race = "White", Sex = " Male", Capital.gain = 1500, Capital.loss = 2000, Hours.per.week = 40, Native.country = "United-States", Income. = "< = 50K")
-
-
-
-
-datoNuevo <- datos[1,]
-
-datoNuevo <- rbind(x.train[1,],datoNuevo)
-datoNuevo <- datoNuevo[-1,]
-
-
-prediccionDatoNuevo=predict(Datos_con_Factores.rf, datoNuevo)
-prediccionDatoNuevo
+# Hacemos la prediccion de los hombres usando el random forest con la variable sexo 
+pred_Hombres.rf=predict(Datos_con_Factores.rf, Datos_Test_con_Factores_Hombre[,-c(15)])
+table.pred_Hombres.rf=table(pred_Hombres.rf,  as.factor(Datos_Test_con_Factores_Hombre[,15]))
+print(table.pred_Hombres.rf)
 
 ```
+Para el caso de los hombres, la diferencia es mínima, de  observaciones, en las que usando la variable sexo, las predice bien, son verdaderos negativos y sin usar la variable las predice mal, son falsos positivos. Como laa diferencia es pequeña podemos afirmar que tampoco existe sesgo de sexo.
+
+Como en ambos casos hemos visto que no existe un sesgo para cada sexo, podemos decir que el modelo no tiene sesgo para el sexo.
 
 #SVM
 ```{r}
