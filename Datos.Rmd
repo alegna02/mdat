@@ -662,6 +662,13 @@ table(modelo1, Datos_Test$Income.)
 
 #Arboles de decision
 
+Primero hagamos una pequeña introducción sobre los Árboles de Decisión. 
+
+Los árboles de decisión son modelos utilizados en la toma de decisiones. Los vamos a usar para clasificar, predecir y tomar decisiones. En los Árboles de decisión cada nodo representa una condición, y las ramas representan posibles respuestas, lo que nos ayuda a tomar decisiones, donde estas, están basadas en múltiples condiciones.
+
+Al tratarse de un método útil en la toma de decisiones, nos vamos a ayudar de esta técnica para predecir si una nueva persona registrada en nuestra base de datos (con todas sus variables) gana anualmente más de 50K o menos de 50K.
+
+
 ```{r}
 #Convertimos las variables cualitativas en factores
 Datos_con_Factores <- datos
@@ -676,6 +683,8 @@ Datos_con_Factores[,14] = as.factor(Datos_con_Factores[,14])
 Datos_con_Factores[,15] = as.factor(Datos_con_Factores[,15])
 ```
 
+Lo primero que vamos a hacer es generar una copia (objeto) de nuestra bases de datos, para trabajar con él, donde las variables cualitativas pasan a ser de tipo factor.
+
 ```{r}
 library(rpart) # Cargamos la librería rpart
 set.seed(123)
@@ -688,6 +697,22 @@ Datos_con_Factores.rp <- rpart(Datos_con_Factores[,15] ~., data=Datos_con_Factor
 plotcp(Datos_con_Factores.rp)
 printcp(Datos_con_Factores.rp)
 ```
+
+El comando `plotcp(Datos_con_Factores.rp)` genera un gráfico que muestra el costo-complejidad del árbol y ayuda a seleccionar el mejor modelo con la cantidad óptima de nodos (conocido como "poda" del árbol). Es decir queremos un equilibrio entre el costo y la complejidad del árbol. 
+
+En este gráfico:
+•	Eje X: nos muestra los valores de complejidad del árbol.
+•	Eje Y: Representa el error de clasificación, asociado con cada árbol a medida que varía su complejidad.
+
+Por lo tanto podemos observar como el punto del gráfico donde el error cuadrático medio es mínimo es en 0.037. En otras palabras este punto puede ser seleccionado como el árbol definitivo tras realizar la poda.
+
+Si nos damos cuenta esto tiene sentido, ya que hay un momento, que es justo a partir del punto 0.037, en el cuál por mucho que hagamos el árbol más profundo, el error que se comete no disminuye, es más, sube. De otra forma, la tasa de acierto no mejora a parir de ese punto por mucho que hagamos el árbol más profundo.
+
+Por tanto en este punto se obtiene el árbol más óptimo en términos de complejidad y rendimiento.
+
+
+
+Al igual que hemos una copia de los datos originales, ahora vamos a proceder a realizar lo mismo, pero con los datos de entrenamiento y con los datos del test. Sin olvidarnos también de convertir las variables cualitativas en variables de tipo factor.
 
 ```{r}
 Datos_Train_con_Factores = Datos_Train
@@ -718,6 +743,9 @@ Datos_Test_con_Factores[,15] = as.factor(Datos_Test_con_Factores[,15])
 Datos_Test_con_Factores_Mujeres = subset(Datos_Test_con_Factores,Datos_Test_con_Factores$Sex == " Female")
 ```
 
+En esta parte se nos presenta un pequeño problema. Al realizar los dos bancos de datos “Train” y “Test”, hay una persona en concreto, la cuál posee un valor de la variable `Education` en los datos de entrenamiento, que no aparece en el banco de datos “Test”.
+
+Lo que hemos realizado es añadir a nuestros datos de entrenamiento esa fila del banco de datos de testeo.
 
 ```{r}
 #Añadimos al train la fila que tiene Preschool pq esta en los test y no en el train
@@ -744,6 +772,15 @@ table(y.pred.fact,y.real.fact) #<-Tabla de predicciones frente a valor real de t
 # sum(y.real.fact=="sick")
 ```
 
+Al realizar esta tabla podemos observar como se relacionan los valores predichos, de los valores reales de TODOS LOS DATOS.
+
+La interpretación de esta tabla es la siguiente:
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 1089
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 109
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 64
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 288
+
+
 ```{r}
 x.train=Datos_Train_con_Factores
 x.test=Datos_Test_con_Factores
@@ -751,6 +788,7 @@ x.test=Datos_Test_con_Factores
 #Datos train
 Datos_Train_con_Factores.rp <- rpart(x.train[,15] ~., data=x.train[,1:14], cp=0.037, parms=list(split="information"))
 ```
+
 Generamos un nuevo Árbol de Decisión, basado en el valor `cp = 0.037` obtenido en la parte anterior, y considerando ahora los datos de entrenamiento `x.train`.
 
 ```{r}
@@ -758,6 +796,7 @@ k=dim(x.train)[1]
 y.pred.train=predict(Datos_Train_con_Factores.rp, x.train[,-c(15)])
 y.pred.train
 ```
+
 Predict (EN FORMA DE PROBABILIDADES) con los datos de entrenamiento, basados en el Arbol de decision `Datos_Train_con_Factores.rp`.
 
 ```{r}
@@ -769,6 +808,15 @@ y.real.train.fact=x.train[,15]
 table(y.pred.train.fact,y.real.train.fact)
 ```
 
+Al realizar esta tabla podemos observar cómo se relacionan los valores predichos, de los valores reales de los datos de entrenamiento.
+
+La interpretación de esta tabla es la siguiente:
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 538
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 83
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 47
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 108
+
+
 ```{r}
 # Datos test
 ##Datos_Test_con_Factores = Datos_Test_con_Factores[Datos_Test_con_Factores$Education != 'Preschool',]
@@ -776,6 +824,7 @@ m=dim(x.test)[1] #tamanno de la muestra de test
 y.pred.test=predict(Datos_Train_con_Factores.rp, x.test[,-c(15)])
 y.pred.test
 ```
+
 Predict (EN FORMA DE PROBABILIDADES) con los datos de entrenamiento "Test", basados en el Arbol de decision `Datos_Train_con_Factores.rp`.
 
 ```{r}
@@ -784,6 +833,13 @@ y.pred.test.fact =factores[max.col(y.pred.test)]
 y.real.test.fact=x.test[,15]
 table(y.pred.test.fact,y.real.test.fact)
 ```
+Al realizar esta tabla podemos observar cómo se relacionan los valores predichos, de los valores reales de los datos “Test".
+
+La interpretación de esta tabla es la siguiente:
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 260
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 42
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 33
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 52
 
 
 PREGUNTAR donde va esto
