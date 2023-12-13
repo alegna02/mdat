@@ -512,10 +512,22 @@ biplot(pca)
 Los estados casi se ordenan en la componente PC2 por Capital Gain en un sentido, y por Capital Loss en el otro, como ya hemos comprobado anteriormente.
 
 # Analisis Cluster
+El clustering es un proceso para agrupar un conjunto de datos en grupos (también conocidos como “clusters”) de manera que los datos dentro de cada grupo son similares entre sí, y diferentes del resto de grupos.
+Existen varios algoritmos de clustering como K-Means y Hierarchical Clustering, cada uno con sus propias características y utilidades. 
+Antes de trabajar con ellos vamos a escalar las tablas de datos. Escalamos los datos para que no haya grandes diferencias entre los valores de las columnas.
+
 ```{r}
 n = dim(datos)[1]
 p = dim(datos)[2]
 DatosTrainEscalados <- scale(Cuantitativo_DatosTrain)
+```
+
+Cluster con k-means
+
+Este algoritmo funciona de la siguiente manera. Primero, debemos decidir cuántos grupos queremos tener. Este número se llama k. Entonces, el algoritmo escoge al azar k observaciones, para ser los centros de cada grupo. A continuación, asigna cada observación restante al grupo cuyo centro es más cercano a ella. Finalmente, calcula una nueva posición para los centros de los grupos, tomando en cuenta las observaciones asignadas a ese grupo. Y repite este proceso varias veces hasta que las observaciones dejen de cambiar de grupo.
+Vamos a probar con distinto número de clústers para ver como quedarían agrupadas las observaciones antes de calcular el numero optimo de clusters. Probamos con 2, 3, 4 y 7 centros.
+
+```{r}
 clusters2.datos=kmeans(DatosTrainEscalados,centers=2,nstart=25)
 clusters2.datos$cluster
 clusters2.datos$withinss
@@ -531,8 +543,12 @@ clusters4.datos$withinss
 clusters7.datos=kmeans(DatosTrainEscalados,centers=7,nstart=25)
 clusters7.datos$cluster
 clusters7.datos$withinss
+```
 
 
+A continuación creamos un vector en el que almacenaremos la variabilidad para los diferentes números de centros. Debemos quedarnos con el número de clusters a partir del cual el descenso en la variabilidad es más suave. 
+
+```{r}
 #Inicializamos el vector
 SSW <- vector(mode = "numeric", length = 15)
 
@@ -547,6 +563,12 @@ plot(1:15, SSW, type="b", xlab="Number of Clusters", ylab="Sum of squares within
 
 centroides=aggregate(DatosTrainEscalados,by=list(clusters4.datos $cluster),FUN=mean)
 t(centroides)  
+```
+
+En nuestro caso al ver la gráfica dudamos entre elegir 4 o 7 clusters asi que vamos a ver que obtenemos en cada caso.
+Construimos ahora sí nuestro análisis cluster igual que antes y vemos cuales son los centros en cada uno de los casos y los representamos dibujando las variables dos a dos, donde cada color representa un cluster. 
+
+```{r}
 # Dibujamos los clusters en el scatterplot (variables 2a2)
 nk=4 # nk es el numero de clusters 
 pairs(DatosTrainEscalados,col= clusters4.datos$cluster,pch=19)
@@ -559,14 +581,21 @@ t(centroides)
 nk=7 # nk es el numero de clusters 
 pairs(DatosTrainEscalados,col= clusters7.datos$cluster,pch=19)
 points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
+```
 
+Vamos a ver definitivamente cual es el numero optimo de clusters poniendo como mínimo 2 y como máximo 15. 
 
+```{r}
 # ISAAC
 library(NbClust)
 nb <- NbClust(DatosTrainEscalados, distance = "euclidean", min.nc = 2, max.nc = 15, method = "kmeans")
+```
 
+Podemos observar que el numero optimo de clusters es 7.
+
+Con los siguientes graficos veremos como se agrupan las observaciones en estos dos casos. 
+```{r}
 library(parameters)
-
 # Ponemos los dos para comparar, el 7  lo dice el metodo el 4 pues para ver que pasa con menos
 res_kmeans <- cluster_analysis(DatosTrainEscalados, n=4, method="kmeans")
 plot(summary(res_kmeans))
@@ -576,6 +605,12 @@ plot(summary(res_kmeans))
 
 
 ```
+Con 4 clusters nuestro grafico nos proporciona la siguiente información. En el primer cluster se encuentran las observaciones que tienen valores altos de horas de trabajo y valores bajos del resto de variables. En el segundo cluster están las observaciones con mayor edad. En el tercero las que tienen alto fnlwgt pero baja edad. Por ultimo en el cuarto las que tienen un CapitalGain alto y un CapitalLoss muy alto.
+
+Veamos que resultado obtenemos con 7 clusters. El primer cluster contiene observaciones con baja edad y horas. El segundo contiene observaciones con altas horas. El tercero contiene observaciones con alta edad y horas y extremadamente alto CapitalGain. El cuarto cluster contiene observaciones con alto CapitalLoss. El quinto contiene observaciones con alto fnlwgt. El sexto contiene observaciones con alta edad. Por ultimo el séptimo contiene observaciones con baja edad.
+
+
+
 ```{r}
 # El grafico que sirve no nos vale ya que tenemos muchos datos y no se ve claramente
 # # Guardamos el vector con el cluster correspondiente a cada país
@@ -587,6 +622,17 @@ plot(summary(res_kmeans))
 ```
 
 # Métodos jerarquicos
+El cluster jerárquico es una técnica para agrupar datos que son similares entre sí. Es similar a la técnica de k-means, pero en lugar de dividir todo en un número fijo de grupos (k), el algoritmo va creando una jerarquía de grupos, donde cada grupo contiene subgrupos, y cada subgrupo contiene a su vez subgrupos, y así sucesivamente formando un dendrograma.
+
+Hay dos maneras de hacerlo:
+-Método ascendente: Comienza con cada punto de datos siendo un grupo y los va agrupando formando jerarquía
+-Método descendente: comienza con todos los puntos de datos en un solo grupo y va dividiendo en subgrupos.
+
+El resultado final es un dendrograma, que es similar a un árbol en el que cada hoja es un punto de datos y cada nodo interno es un grupo de puntos de datos. El nivel más alto del árbol es el grupo principal que contiene a todos los puntos de datos, y los niveles inferiores son los subgrupos.
+
+Es importante mencionar que en este algoritmo es necesario definir una medida de distancia para poder comparar los datos, que en nuestro caso es la distancia euclidiana.
+
+Para realizar esta sección se utiliza la función hclust, en la cual se pueden utilizar distintos métodos como “single”, “ward.D”, “complete”… En nuestro caso el que nos proporciona mayor información y visibilidad es el realizado con “ward.D”.
 
 ```{r}
 #Probamos varios metodos de agrupacion y nos damos cuenta que el mejor es
@@ -594,6 +640,9 @@ plot(summary(res_kmeans))
 d <- dist(Cuantitativo_DatosTrain, method = "euclidean")
 fit <- hclust(d, method="ward.D")
 plot(fit, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este
+
+groups <- cutree(fit, k=7) # Fijamos en 7 el número de clusters
+rect.hclust(fit, k=7, border="red")
 
 fit2 <- hclust(d, method="single")
 plot(fit2, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
@@ -615,6 +664,7 @@ plot(fit7, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
 
 
 ```
+Aqui podemos ver los siete clusters.
 
 ```{r}
 
