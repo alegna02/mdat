@@ -27,6 +27,29 @@ library(gcookbook)
 library(stats)
 library(e1071)
 ```
+
+# Preguntas de interes
+
+1. ¿Hay algun tipo de sesgo en cuanto al sexo de las personas?
+
+2. ¿Es cierto que todas las variables aportan informacion significativa?
+
+3. ¿Habra algun modelo que prediga mejor de
+
+4. Dado un individuo que no gana mas de 50k que podri tener condiciones para ganarlo, ¿que recomendacion podemos dar a esa persona para que gane mas de 50k?
+
+5. ¿Es proporcional el nivel de educacion junto con la profesion que se ocupa a la cantidad de ingreso que genera?
+
+6. Teniendo en cuenta que el PCA solo tiene en cuenta variables que son cuantitavivas, ¿es buena idea considerar este modelo como un candidato a mejor modelo predictivo?
+
+7.
+
+8. ¿
+
+9.
+
+10. ¿Cual es el mejor kernel para la separacion de nuestros datos?
+
 La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir si los ingresos de una serie de personas superan los 50000 dólares al año según los datos del censo. Esta base de datos fue extraida por Barry Becker del censo de 1994 y tiene 48842 observaciones y 14 variables.
 
 # Leemos los datos
@@ -222,7 +245,7 @@ Cualitativo_DatosTrain=data.frame(WorkClass=Datos_Train$Workclass,Education=Dato
 Cuantitativo_DatosTest= data.frame(Age=Datos_Test$Age,FNLWGT=Datos_Test$fnlwgt,CapitalGain=Datos_Test$Capital.gain,CapitalLoss=Datos_Test$Capital.loss,Hours=Datos_Test$Hours.per.week)
 
 # Tabla que contiene los datos de la parte test de las variables cualitativas
-Cualitativo_DatosTrain=data.frame(WorkClass=Datos_Test$Workclass,Education=Datos_Test$Education,EstadoCivil=Datos_Test$Marital.status,Occupation=Datos_Test$Occupation.,RelationShip=Datos_Test$Relationship,Race=Datos_Test$Race,Sex=Datos_Test$Sex,NativeCountry=Datos_Test$Native.country,Income=Datos_Test$Income.)
+Cualitativo_DatosTest=data.frame(WorkClass=Datos_Test$Workclass,Education=Datos_Test$Education,EstadoCivil=Datos_Test$Marital.status,Occupation=Datos_Test$Occupation.,RelationShip=Datos_Test$Relationship,Race=Datos_Test$Race,Sex=Datos_Test$Sex,NativeCountry=Datos_Test$Native.country,Income=Datos_Test$Income.)
 ```
 
 Vamos a realizar un gráfico en el que se van a comparar las variables númericas dos a dos, para ver que variables están mayormente relacionadas. Para realizar el gráfico usamos la función "pairs()".
@@ -1002,7 +1025,7 @@ cost_est = apply(Cuantitativo_DatosTrain, 2, norma2)
 
 
 # Calculamos el modelo utilizando RBF
-svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
+svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T,probability = T)
 
 svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
 
