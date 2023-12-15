@@ -918,6 +918,18 @@ La interpretación de esta tabla es la siguiente:
 PREGUNTAR donde va esto
 En la predicción para los datos del test nos daba un error de que había un valor que no existía, esto era porque en los datos test hay 2 observaciones en las que la variable education toman el valor de Preschool. Pero, estas son las dos únicas observaciones de la muestra, luego en los datos pertenecientes al train no existen observaciones donde se tomen estos valores, luego al crear el árbol, éste no tiene en cuenta dicha categoría, luego al después metersela para que prediga da un error.
 
+Estos datos nos muestra que el random forest tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+```{r}
+(260+52)/387
+```
+De manera recíproca tiene un error del 19.38% (FP+FN)/N
+```{r}
+(33+42)/387
+```
+Además, tiene una precisión del 56% TP/(TP+FP). Que no es muy alta pero está bien, luego el modelo no es muy preciso con las predicciones.
+```{r}
+42/(42+33)
+```
 
 # RANDOM FOREST
 
