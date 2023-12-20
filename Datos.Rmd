@@ -723,18 +723,49 @@ points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
 
 ```
 
+Knn significa "k-nearest neighbors" que en español, significa "k-vecinos más cercanos".
+El Knn es un modelo que se usa para realizar la clasificación de los datos. Este modelo se basa en la idea de que las observaciones que son similares tienden a estar cerca entre ellas.
+
+KNN lo que va a hacer es clasificar un nuevo dato basándose en las características de sus vecinos más cercanos.
+
+Para realizar el Knn, primero debemos definir el valor de k que va a ser el número de vecinos más cercanos que se tendrán en cuenta al clasificar un nuevo datos.
 ```{r}
 library(class)
-c2 <- factor(Datos_Train$Income.,labels = c(">50K", "<=50K"))
+#library(cli)
+#library(caret)
+# Indicamos las categorias de la variable respuesta
+c2 <- factor(Datos_Train$Income.,labels = c("<=50K", ">50K"))
+# Definimos el numero de vecinos mas cercanos que vamos a tener en cuenta para hacer la clasificacion
 k1 = length(datos$Age)^((4)/(14+4))
+# Creamos el modelo para el knn
 modelo1 <- knn(train = Cuantitativo_DatosTrain, test = Cuantitativo_DatosTest, cl = c2, k = k1)
 
+# Vemos la prediccion que hace el modelo knn
 table(modelo1, Datos_Test$Income.)
-# Falta graficar esto 
+
+#confusionMatrix(table(modelo1, Datos_Test$Income.), positive="TRUE")
+
+```
+La interpretación de esta tabla es la siguiente:
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 277
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 83
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 16
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 11
+
+Estos datos nos muestra que el knn tiene una exactitud del 74.42% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+```{r}
+(277+11)/387
+```
+De manera recíproca tiene un error del 25.58% (FP+FN)/N
+```{r}
+(16+83)/387
+```
+Además, tiene una precisión del 83.83% TP/(TP+FP), Que es bastante alta.
+```{r}
+83/(83+16)
 ```
 
-#Arboles de decision
-
+# Árboles de decisión
 Primero hagamos una pequeña introducción sobre los Árboles de Decisión. 
 
 Los árboles de decisión son modelos utilizados en la toma de decisiones. Los vamos a usar para clasificar, predecir y tomar decisiones. En los Árboles de decisión cada nodo representa una condición, y las ramas representan posibles respuestas, lo que nos ayuda a tomar decisiones, donde estas, están basadas en múltiples condiciones.
