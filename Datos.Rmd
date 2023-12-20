@@ -28,7 +28,7 @@ library(stats)
 library(e1071)
 ```
 
-# Preguntas de interes
+# Preguntas de interés (Bussiness understanding)
 
 1. ¿Hay algun tipo de sesgo en cuanto al sexo de las personas?
 
@@ -36,19 +36,17 @@ library(e1071)
 
 3. ¿Habra algun modelo que prediga mejor de
 
-4. Dado un individuo que no gana mas de 50k que podri tener condiciones para ganarlo, ¿que recomendacion podemos dar a esa persona para que gane mas de 50k?
+4. ¿Es proporcional el nivel de educacion junto con la profesion que se ocupa a la cantidad de ingreso que genera?
 
-5. ¿Es proporcional el nivel de educacion junto con la profesion que se ocupa a la cantidad de ingreso que genera?
+5. Teniendo en cuenta que el PCA solo tiene en cuenta variables que son cuantitavivas, ¿es buena idea considerar este modelo como un candidato a mejor modelo predictivo?
 
-6. Teniendo en cuenta que el PCA solo tiene en cuenta variables que son cuantitavivas, ¿es buena idea considerar este modelo como un candidato a mejor modelo predictivo?
+6.
 
-7.
+7. ¿
 
-8. ¿
+8.
 
-9.
-
-10. ¿Cual es el mejor kernel para la separacion de nuestros datos?
+9. ¿Cual es el mejor kernel para la separacion de nuestros datos?
 
 La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir si los ingresos de una serie de personas superan los 50000 dólares al año según los datos del censo. Esta base de datos fue extraida por Barry Becker del censo de 1994 y tiene 48842 observaciones y 14 variables.
 
@@ -728,7 +726,7 @@ Para realizar el Knn, primero debemos definir el valor de k que va a ser el núm
 ```{r}
 library(class)
 #library(cli)
-#library(caret)
+library(caret)
 # Indicamos las categorias de la variable respuesta
 c2 <- factor(Datos_Train$Income.,labels = c("<=50K", ">50K"))
 # Definimos el numero de vecinos mas cercanos que vamos a tener en cuenta para hacer la clasificacion
@@ -737,9 +735,10 @@ k1 = length(datos$Age)^((4)/(14+4))
 modelo1 <- knn(train = Cuantitativo_DatosTrain, test = Cuantitativo_DatosTest, cl = c2, k = k1)
 
 # Vemos la prediccion que hace el modelo knn
-table(modelo1, Datos_Test$Income.)
+predicionKNN=table(modelo1, Datos_Test$Income.)
 
 #confusionMatrix(table(modelo1, Datos_Test$Income.), positive="TRUE")
+print(confusionMatrix(data = as.factor(predicionKNN),reference=as.factor(Cualitativo_DatosTest$Income.)))
 
 ```
 La interpretación de esta tabla es la siguiente:
@@ -928,6 +927,10 @@ factores=colnames(y.pred.test)
 y.pred.test.fact =factores[max.col(y.pred.test)]
 y.real.test.fact=x.test[,15]
 table(y.pred.test.fact,y.real.test.fact)
+
+
+## Tabla de confusionMatrix donde tenemos todas las medidas de rendimiento
+print(confusionMatrix(data = as.factor(y.pred.test.fact),reference=as.factor(Datos_Test$Income.)))
 ```
 Al realizar esta tabla podemos observar cómo se relacionan los valores predichos, de los valores reales de los datos “Test".
 
@@ -979,7 +982,13 @@ table.libreria.test=table(y.pred.test.rf,  as.factor(x.test[,15]))
 print(table.libreria.train)
 print(table.libreria.test)
 
+print(confusionMatrix(data = as.factor(y.pred.test.rf),as.factor(x.test$Income.)), positive = unique(Income.)[1]
+)
+#levels(as.factor(x.test$Income.))[2]
+
 ```
+HAY QUE COMENTAR LO DE LA CONFUSIONMATRIX YA QUE ELIGE SIEMPRE COMO CLASE POSITIVA <=50K.
+
 Como vemos en los resultados, los datos del train los predice todos bien, esto es normal ya que ha sido entrenado con estos datos y los árboles han sido creados a través de estos.
 
 En los resultados de las predicciones del test podemos ver que para los 298 que tienen unos ingresos menores de 50000, predice bien 258, que son los verdaderos negativos (TN), y a 40 los predice mal, que son los falsos negativos (FN). Por otra parte, vemos que para los 89 que realmente ganan más de 50000, predice bien 54, que corresponden con los verdaderos positivos (TP) y mal a 35, que osn los falsos positivos (FP).
@@ -1073,12 +1082,17 @@ table(pred2, as.factor(Cualitativo_DatosTrain$Income))
 ```
 
 
+# Conclusiones Finales
 
 
+# Nuevas tendencias.
 
+Tras la realización de este trabajo, nos planteamos lass siguientes cuestiones que podriamos resolverlas en un futuro.
 
+En cuanto a la variable `fnlwgt` tenemos muchos indicios de que se trata de una variable, que a parte de tratarse del peso socio-economico de una persona, es una variable que elimina cualquier tipo de sesgo que pueda existir en nuestra base de datos.
 
+Entonces nos planteamos la siguiente pregunta, ¿que ocurriria si eliminasemos esa variable de nustro conjunto de variables?
 
+Un trabajo futuro sería, por ejemplo, analizar si tras eliminar la variable `fnlwgt` existiría algún tipo de sesgo.
 
-
-
+Por otra parte, se nos plantea otro escenario. Dado un individuo que no gana mas de 50K que podría tener condiciones para ganarlo, que recomendación podemos dar a esa persona para que gane mas de 50k.
