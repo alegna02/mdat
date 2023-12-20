@@ -294,9 +294,6 @@ names(Cuantitativo_Datos)
 ```
 Con este gráfico podemos ver los histogramas de cada variables, con lo que podríamos ver que distribución sigue cada variable cuantitativa.
 
-PREGUNTAR
-no se que distribucion siguen si es q siguen alguna hours parece una normal.
-
 Vamos a ver la distribucion de las cualitativas haciendo sus histogramas.
 
 ```{r}
@@ -324,7 +321,6 @@ geom_bar(mapping = aes(x = datos$Sex))
 ggplot(data = datos) +
 geom_bar(mapping = aes(x = datos$Native.country))+ coord_flip()
 ```
-PREGUNTAR
 De la gráfica del país de nacimiento, vemos que la gran parte de la muestra nacieron en EEUU, luego para las predicciones, si usamos datos de otros países, donde la mayor parte de los datos en media pueden cambiar, no van a ser tan fiables. 
 
 Vamos a realizar gráficos para comparar distintas variables con la variable respuesta.
@@ -842,10 +838,6 @@ Datos_Test_con_Factores[,14] = as.factor(Datos_Test_con_Factores[,14])
 Datos_Test_con_Factores[,15] = as.factor(Datos_Test_con_Factores[,15])
 ```
 
-```{r}
-##Mirar
-Datos_Test_con_Factores_Mujeres = subset(Datos_Test_con_Factores,Datos_Test_con_Factores$Sex == " Female")
-```
 
 En esta parte se nos presenta un pequeño problema. Al realizar los dos bancos de datos “Train” y “Test”, hay una persona en concreto, la cuál posee un valor de la variable `Education` en los datos de entrenamiento, que no aparece en el banco de datos “Test”.
 
@@ -946,9 +938,6 @@ La interpretación de esta tabla es la siguiente:
 -	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 52
 
 
-PREGUNTAR donde va esto
-En la predicción para los datos del test nos daba un error de que había un valor que no existía, esto era porque en los datos test hay 2 observaciones en las que la variable education toman el valor de Preschool. Pero, estas son las dos únicas observaciones de la muestra, luego en los datos pertenecientes al train no existen observaciones donde se tomen estos valores, luego al crear el árbol, éste no tiene en cuenta dicha categoría, luego al después metersela para que prediga da un error.
-
 Estos datos nos muestra que el random forest tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
 ```{r}
 (260+52)/387
@@ -966,7 +955,6 @@ Además, tiene una precisión del 56% TP/(TP+FP). Que no es muy alta pero está 
 
 Un Bosque de Árboles es un conjunto de Árboles de Decisión donde cada árbol se entrena de manera independiente con una muestra aleatoria de los datos de entrenamiento y realiza predicciones. La predicción final del bosque se obtiene al promediar las predicciones de todos los árboles individuales. En estos, los nodos terminales contienen pocas observaciones, además, si dos observaciones caen en el mismo nodo terminal, entonces estas tienen mayor similaridad.
 
-PREGUNTAR
 Vamos a realizar un random forest con nuestra muestra train y luego vamos a predecir la muestra del test y comentar los resultados para ver la precisión, exactitud...
 
 Al crear el random forest con los datos del train y luego predecir los del test nos da un error de que las variables no coinciden. Para solucionarlo, como realmente si que coinciden, lo que hemos hecho es añadir la primera observacion de los datos train a los datos test y luego borrarsela. De esta manera las tablas se relacionan y no se produce este error.
