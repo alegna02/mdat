@@ -1,5 +1,5 @@
 ---
-title: "Ejemplo"
+title: "Trabajo Mineria de Datos"
 output: html_document
 date: "2023-09-26"
 ---
@@ -1058,6 +1058,15 @@ Para el caso de los hombres, la diferencia es mínima, de  observaciones, en las
 Como en ambos casos hemos visto que no existe un sesgo para cada sexo, podemos decir que el modelo no tiene sesgo para el sexo.
 
 #SVM
+
+Las máquinas de vectores soporte o Support Vector Machines son otra técnica de clasificado de elementos de una base de datos.
+
+Intuitivamente, lo que este método intenta es encontrar un hiperplano separador para el espacio donde estén nuestros datos. Esto lo consigue tomando un subconjunto de los mismos (en un espacio de dimensionalidad alta empleando un kernel, algo matemáticamente muy técnico pero riguroso) lo suficientemente amplio para no obtener mucho error en la clasificación, pero a la vez lo suficientemente pequeño como para no ser muy complejo y con dicho subconjunto intentar dibujar el hiperplano.
+
+Este hiperplano puede ser lineal, radial, polinomial, etc; dependiendo del kernel que se utilice en la transformación de los puntos al espacio de dimension alta.
+
+Aquí, vamos a probar con dos tipos de kernel, el radial y el polinomial, que llevan asociados dos parámetros. Para un primer cálculo emplearemos unas aproximaciones algo amplias de dichos parámetros para observar la efectividad del modelo. Más tarde, usaremos una función de R para ajustar dichos parámetros y obtener la predicción definitiva.
+
 ```{r}
 gamma_est = 1/apply(Cuantitativo_DatosTrain, 2, sd)
 norma2 = function(x) sqrt(sum(x^2))
@@ -1067,19 +1076,126 @@ cost_est = apply(Cuantitativo_DatosTrain, 2, norma2)
 # Calculamos el modelo utilizando RBF
 svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T,probability = T)
 
-svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
+svm2 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="polynomial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
 
 # Predecimos
 
 pred1 = predict(svm1, Cuantitativo_DatosTest)
 
-pred2 = predict(svm1, Cuantitativo_DatosTrain)
+pred2 = predict(svm2, Cuantitativo_DatosTest)
+
+
 # Calculamos la matriz de confusión
 
 table(pred1, x.test[,15])
-table(pred2, as.factor(Cualitativo_DatosTrain$Income))
-
+table(pred2, x.test[,15])
 ```
+
+```{r}
+# Tasa de error pred1
+(18+74)/387
+```
+
+```{r}
+# Precision pred1
+20/(18+20)
+```
+```{r}
+# Tasa de error pred2
+(7+78)/387
+```
+```{r}
+# Precision pred2
+16/(16+7)
+```
+
+Al realizar la prediccion sin ajustar parametros obtenemos que, eligiendo un kernel radial, la tasa de aciertos/exactitud es de un 76.22%, tasa de error 23.77% y una precision del 52.63%. Eligiendo un kernel polynomial, la tasa de aciertos/exactitud es del 78.03%, la tasa de error es del 21.96% y una precision del 69.56%.
+
+A continuación, ajustaremos los parametros y obtendremos la prediccion definitiva.
+
+```{r}
+# Ajustando parametros
+
+parametros = tune.svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), gamma = seq(0.5,2.5,by=0.5), cost = seq(10,90,by=20))
+attributes(parametros)
+
+# Calculamos el modelo con estos parámetros y kernel radial
+
+svm1Ajustado = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma= parametros$best.parameters[1], cost= parametros$best.parameters[2], scale=T)
+
+# Predecimos
+
+pred1Ajustado = predict(svm1Ajustado, Cuantitativo_DatosTest)
+
+# Calculamos la matriz de confusión
+
+table(pred1Ajustado, x.test[,15])
+
+
+# Calculamos el modelo con estos parámetros y kernel polinomial
+
+svm2Ajustado = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="polynomial", gamma= parametros$best.parameters[1], cost= parametros$best.parameters[2], scale=T)
+svm2Ajustado.prob = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="polynomial", gamma= parametros$best.parameters[1], cost= parametros$best.parameters[2], scale=T, prob = T)
+
+
+# Predecimos para sv2Ajustado
+pred2Ajustado = predict(svm2Ajustado, Cuantitativo_DatosTest)
+pred2Ajustado.prob = predict(svm2Ajustado, Cuantitativo_DatosTest, prob = T)
+
+# Calculamos la matriz de confusión
+
+table(pred2Ajustado, x.test[,15])
+```
+
+```{r}
+# Tasa de error pred1Ajustado
+(12+72)/387
+```
+
+```{r}
+# Precision pred1Ajustado
+22/(12+22)
+```
+
+```{r}
+# Tasa de error pred2Ajustado
+(8+72)/387
+```
+
+```{r}
+# Precision pred2Ajustado
+22/(8+22)
+```
+
+Al ajustar los parametros obtenemos mejores resultados, eligiendo un kernel radial obtenemos una tasa de aciertos/exactitud del 78.29%, una tasa de error del 21.7% y una precision del 64.7%. Eligiendo un kernel polinomial obtenemos una tasa de aciertos/exactitud del 79.32%, una tasa de error del 20.67% y una precision del 73.33%. Por ello, el kernel polinomial es el que mejor modelo nos proporciona.
+
+# Curvas ROC
+
+Las curvas ROC nos permiten ver cual es mejor modelo, el cual utilizaremos a la hora de predecir con los datos de validacion. Para ello:
+
+```{r}
+library(pROC)
+par(pty= "s") #square
+
+Datos_Test$income_binario <- ifelse(Datos_Test$Income. == " >50K", 1, 0)
+
+# Arboles de decision
+y.real.test.fact=Datos_Test[,16]
+
+# Random forest
+y.pred.test.rf.p=predict(Datos_con_Factores.rf, x.test[,-c(15)], type = "prob")
+
+roc(y.real.test.fact,y.pred.test[,2],plot=TRUE, legacy.axes= TRUE, percent= TRUE, xlab= "PorcentajeFalsospositivos", ylab= "Porcentajeverdaderos postivios", col= "#377eb8", lwd= 2, print.auc= TRUE,legend=TRUE, brier.in.legend=TRUE)
+roc(y.real.test.fact,y.pred.test.rf.p[,2],percent=TRUE, col="#4daf4a",lwd=2, print.auc=TRUE, add=TRUE,print.auc.y= 40,plot=TRUE,legend=TRUE)
+roc(y.real.test.fact,attr(pred2Ajustado.prob, "probabilities")[,2],percent=TRUE,col="goldenrod",lwd= 2, print.auc=TRUE, add=TRUE,print.auc.y= 30,plot=TRUE,legend=TRUE)
+
+legend("bottom", legend=c("DT", "RF","SVM"), col=c("#377eb8","#4daf4a", "goldenrod"), lwd=2,cex=.5, xpd= TRUE, horiz =TRUE)
+```
+
+Como se puede observar el mejor modelo, y el que se va a emplear para estudiar el conjunto de validación es `RANDOM FOREST`.
+
+# Estudio Datos Validación
+
 
 
 # Conclusiones Finales
