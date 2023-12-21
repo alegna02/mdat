@@ -407,19 +407,11 @@ pca_dataframe_Income <- Datos_Train$Income.
 
 
 par(mfrow=c(2,3))
-ggplot(pca_dataframe, aes(x = PC1, y = PC2, color = Income.)) +
+ggplot(pca_dataframe, aes(x = PC2, y = PC5, color = Income.)) +
   geom_point() +
   labs(title = "PCA con Colores según el Income")
 
-ggplot(pca_dataframe, aes(x = PC1, y = PC3, color = Income.)) +
-  geom_point() +
-  labs(title = "PCA con Colores según el Income")
-
-ggplot(pca_dataframe, aes(x = PC1, y = PC4, color = Income.)) +
-  geom_point() +
-  labs(title = "PCA con Colores según el Income")
-
-ggplot(pca_dataframe, aes(x = PC2, y = PC3, color = Income.)) +
+ggplot(pca_dataframe, aes(x = PC4, y = PC5, color = Income.)) +
   geom_point() +
   labs(title = "PCA con Colores según el Income")
 
@@ -427,9 +419,6 @@ ggplot(pca_dataframe, aes(x = PC2, y = PC4, color = Income.)) +
   geom_point() +
   labs(title = "PCA con Colores según el Income")
 
-ggplot(pca_dataframe, aes(x = PC3, y = PC4, color = Income.)) +
-  geom_point() +
-  labs(title = "PCA con Colores según el Income")
 ```
 
 
