@@ -723,6 +723,7 @@ El Knn es un modelo que se usa para realizar la clasificación de los datos. Est
 KNN lo que va a hacer es clasificar un nuevo dato basándose en las características de sus vecinos más cercanos.
 
 Para realizar el Knn, primero debemos definir el valor de k que va a ser el número de vecinos más cercanos que se tendrán en cuenta al clasificar un nuevo datos.
+
 ```{r}
 library(class)
 #library(cli)
@@ -761,6 +762,7 @@ Además, tiene una precisión del 83.83% TP/(TP+FP), Que es bastante alta.
 ```
 
 # Árboles de decisión
+
 Primero hagamos una pequeña introducción sobre los Árboles de Decisión. 
 
 Los árboles de decisión son modelos utilizados en la toma de decisiones. Los vamos a usar para clasificar, predecir y tomar decisiones. En los Árboles de decisión cada nodo representa una condición, y las ramas representan posibles respuestas, lo que nos ayuda a tomar decisiones, donde estas, están basadas en múltiples condiciones.
@@ -843,16 +845,18 @@ En esta parte se nos presenta un pequeño problema. Al realizar los dos bancos d
 Lo que hemos realizado es añadir a nuestros datos de entrenamiento esa fila del banco de datos de testeo.
 
 ```{r}
-#Añadimos al train la fila que tiene Preschool pq esta en los test y no en el train
+#Añadimos al train la fila que tiene Preschool porque esta en los test y no en el train
 Datos_Train_con_Factores <- rbind(Datos_Train_con_Factores, Datos_Test_con_Factores[c('209'),])
 ```
 
 ## Predicciones Con el Árbol de Decisión 
+
 ```{r}
 n=dim(Datos_con_Factores)[1]
 y.pred=predict(Datos_con_Factores.rp,Datos_con_Factores[,-c(15)])
 y.pred
 ```
+
 Predict (EN FORMA DE PROBABILIDADES) con todos los datos de la tabla, basados en el arbol de decision `Datos_con_Factores.rp`.
 
 ```{r}
@@ -942,14 +946,17 @@ La interpretación de esta tabla es la siguiente:
 
 
 Estos datos nos muestra que el random forest tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+
 ```{r}
 (260+52)/387
 ```
 De manera recíproca tiene un error del 19.38% (FP+FN)/N
+
 ```{r}
 (33+42)/387
 ```
 Además, tiene una precisión del 56% TP/(TP+FP). Que no es muy alta pero está bien, luego el modelo no es muy preciso con las predicciones.
+
 ```{r}
 42/(42+33)
 ```
@@ -961,6 +968,7 @@ Un Bosque de Árboles es un conjunto de Árboles de Decisión donde cada árbol 
 Vamos a realizar un random forest con nuestra muestra train y luego vamos a predecir la muestra del test y comentar los resultados para ver la precisión, exactitud...
 
 Al crear el random forest con los datos del train y luego predecir los del test nos da un error de que las variables no coinciden. Para solucionarlo, como realmente si que coinciden, lo que hemos hecho es añadir la primera observacion de los datos train a los datos test y luego borrarsela. De esta manera las tablas se relacionan y no se produce este error.
+
 ```{r}
 library(randomForest)
 set.seed(123)
@@ -969,16 +977,22 @@ set.seed(123)
 x.test <- rbind(x.train[1,],x.test)
 # Se la eliminamos
 x.test <- x.test[-1,]
+
 # Creamos el random forest
 Datos_con_Factores.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
 
 # Predecimos para cada una de las obsesrvaciones de los datos del train la variable respuesta.
+
 y.pred.train.rf= predict(Datos_con_Factores.rf, x.train[,-c(15)])
 table.libreria.train=table(y.pred.train.rf,  as.factor(x.train[,15]))
+
 # Predecimos para cada una de las obsesrvaciones de los datos del test la variable respuesta.
+
 y.pred.test.rf=predict(Datos_con_Factores.rf, x.test[,-c(15)])
 table.libreria.test=table(y.pred.test.rf,  as.factor(x.test[,15]))
+
 # Imprimimos los resultados
+
 print(table.libreria.train)
 print(table.libreria.test)
 
@@ -1053,6 +1067,7 @@ table.pred_Hombres.rf=table(pred_Hombres.rf,  as.factor(Datos_Test_con_Factores_
 print(table.pred_Hombres.rf)
 
 ```
+
 Para el caso de los hombres, la diferencia es mínima, de  observaciones, en las que usando la variable sexo, las predice bien, son verdaderos negativos y sin usar la variable las predice mal, son falsos positivos. Como laa diferencia es pequeña podemos afirmar que tampoco existe sesgo de sexo.
 
 Como en ambos casos hemos visto que no existe un sesgo para cada sexo, podemos decir que el modelo no tiene sesgo para el sexo.
@@ -1196,7 +1211,62 @@ Como se puede observar el mejor modelo, y el que se va a emplear para estudiar e
 
 # Estudio Datos Validación
 
+Una vez ya hemos visto y comprobado mediante distintas técnicas, que el mejor modelo se obtiene mediante `RANDOM FOREST`, veamos que es lo que ocurre si estudiamos los datos de validación.
 
+```{r}
+Datos_Validation_con_Factores = Datos_Validation
+Datos_Validation_con_Factores[,2] = as.factor(Datos_Validation_con_Factores[,2])
+Datos_Validation_con_Factores[,4] = as.factor(Datos_Validation_con_Factores[,4])
+Datos_Validation_con_Factores[,6] = as.factor(Datos_Validation_con_Factores[,6])
+Datos_Validation_con_Factores[,7] = as.factor(Datos_Validation_con_Factores[,7])
+Datos_Validation_con_Factores[,8] = as.factor(Datos_Validation_con_Factores[,8])
+Datos_Validation_con_Factores[,9] = as.factor(Datos_Validation_con_Factores[,9])
+Datos_Validation_con_Factores[,10] = as.factor(Datos_Validation_con_Factores[,10])
+Datos_Validation_con_Factores[,14] = as.factor(Datos_Validation_con_Factores[,14])
+Datos_Validation_con_Factores[,15] = as.factor(Datos_Validation_con_Factores[,15])
+
+# Añadimos al train la fila que tiene Preschool porque esta en el conjunto de validacion y no en el train
+
+Datos_Train_con_Factores <- rbind(Datos_Train_con_Factores, Datos_Validation_con_Factores[c('858'),])
+
+x.train = Datos_Train_con_Factores
+
+x.validation = Datos_Validation_con_Factores
+
+# Añadimos la primera fila de la tabla train a la tabla de validation
+
+x.validation <- rbind(x.train[1,],x.validation)
+# Se la eliminamos
+
+x.validation <- x.validation[-1,]
+
+# Volvemos a ejecutar el modelo que teniamos
+
+Datos_con_Factores.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
+```
+
+## Predicciones
+
+```{r}
+y.pred.validation.rf=predict(Datos_con_Factores.rf, x.validation[,-c(15)])
+table.libreria.validation=table(y.pred.validation.rf,  as.factor(x.validation[,15]))
+
+print(table.libreria.validation)
+```
+
+Hay varias métricas y técnicas que podemos utilizar para evaluar la bondad del modelo. Destacamos las siguientes:
+
+```{r}
+# Matriz de confusión
+
+print(confusionMatrix(data = y.pred.validation.rf,reference=as.factor(x.validation$Income.)))
+```
+
+```{r}
+# Importancia de las variables en el modelo RANDOM FOREST
+
+importance(Datos_con_Factores.rf)
+```
 
 # Conclusiones Finales
 
