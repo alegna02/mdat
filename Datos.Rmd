@@ -592,7 +592,6 @@ points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
 Vamos a ver definitivamente cual es el numero optimo de clusters poniendo como mínimo 2 y como máximo 15. 
 
 ```{r}
-# ISAAC
 library(NbClust)
 nb <- NbClust(DatosTrainEscalados, distance = "euclidean", min.nc = 2, max.nc = 15, method = "kmeans")
 ```
@@ -706,6 +705,7 @@ points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
 
 ```
 
+# KNN
 Knn significa "k-nearest neighbors" que en español, significa "k-vecinos más cercanos".
 El Knn es un modelo que se usa para realizar la clasificación de los datos. Este modelo se basa en la idea de que las observaciones que son similares tienden a estar cerca entre ellas.
 
@@ -728,7 +728,7 @@ modelo1 <- knn(train = Cuantitativo_DatosTrain, test = Cuantitativo_DatosTest, c
 predicionKNN=table(modelo1, Datos_Test$Income.)
 
 #confusionMatrix(table(modelo1, Datos_Test$Income.), positive="TRUE")
-print(confusionMatrix(data = as.factor(predicionKNN),reference=as.factor(Cualitativo_DatosTest$Income.)))
+# print(confusionMatrix(data = as.factor(predicionKNN),reference=as.factor(Cualitativo_DatosTest$Income.)))
 
 ```
 La interpretación de esta tabla es la siguiente:
@@ -916,6 +916,7 @@ y.pred.test
 Predict (EN FORMA DE PROBABILIDADES) con los datos de entrenamiento "Test", basados en el Arbol de decision `Datos_Train_con_Factores.rp`.
 
 ```{r}
+library(caret)
 factores=colnames(y.pred.test)
 y.pred.test.fact =factores[max.col(y.pred.test)]
 y.real.test.fact=x.test[,15]

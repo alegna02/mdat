@@ -1,0 +1,1051 @@
+---
+title: "Trabajo Mineria de Datos"
+output: html_document
+date: "2023-09-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(moments) 
+library(gmodels) 
+library(scales)
+library(survival) 
+library(zoo) 
+library(quantmod) 
+library(vcd) 
+#library(vcdExtra)
+library(faraway) 
+library(Hmisc) 
+library(car) 
+library(MASS) 
+library(latticeExtra)
+library(dplyr) 
+#library(tidyr) 
+library(ggplot2)
+library(gcookbook)
+library(stats)
+library(e1071)
+```
+
+La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir si los ingresos de una serie de personas superan los 50000 dólares al año según los datos del censo. Esta base de datos fue extraida por Barry Becker del censo de 1994 y tiene 32600 observaciones y 14 variables.
+
+# Preguntas de interés (Bussiness understanding)
+
+1. ¿Existe algún tipo de sesgo en cuanto al sexo de las personas?
+
+2. ¿Es cierto que todas las variables aportan información significativa?
+
+3. ¿Es proporcional el nivel de educacion junto con la profesion que se ocupa a la cantidad de ingreso que genera?
+
+4. Teniendo en cuenta que el PCA solo tiene en cuenta variables que son cuantitavivas, ¿es buena idea considerar este modelo como un candidato a mejor modelo predictivo?
+
+5. ¿Cual es el mejor kernel para la separacion de nuestros datos?
+
+
+# Leemos los datos
+
+La base de datos que vamos a leer contiene sólo 1550 obervaciones. Esto se debe a que hemos escogido una muestra de la base de datos y lo que hemos hecho es eliminar los datos directamente de la base de datos, es decir, dentro del Excel. Además, aunque la base de datos original contiene valores nulos, nosotros nos hemos fijado en ellos y al ser pocos, un 7%, y ver que no son importantes los hemos decidido eliminar.
+
+```{r}
+# Leemos los datos
+datos <- read.csv('datos/AdultBueno.csv', sep = ';')
+```
+
+# División de los datos en Train, Test y Validation
+
+Una vez leídos los datos, vamos a divirlos en tres conjuntos. 
+
+```{r}
+# División de los datos en Train, Test y Validation
+numero_filas = nrow(datos) # Miramos el número de filas
+set.seed(123456) # Creamos una semilla para qu ela división siempre sea la misma
+# Seleccionamos un 50% para TRAIN
+indices_train = sample(1:numero_filas, .5*numero_filas)
+Datos_Train = datos[indices_train,]
+# Seleccionamos un 25% para TEST
+indices = seq(1:numero_filas)
+indices_test = sample(indices[-indices_train], .25*numero_filas)
+Datos_Test = datos[indices_test,]
+# Seleccionamos un 25% para VALIDATION
+indices_validation = indices[-c(indices_train,indices_test)]
+Datos_Validation = datos[indices_validation,]
+```
+
+# Análisis exploratorio de datos
+
+Lo que pretendemos conseguir a partir de nuestros datos es predecir si los ingresos en un año van a ser superiores a 50000 dólares. Además, queremos ver que variables son las que más influyen en la predicción.
+
+Para ello vamos a realizar un análisis de los datos. Vamos a empezar viendo las variables que tenemos que estudiar.
+
+
+- Age (edad): Variable de tipo númerico que expresa la edad de la persona.
+  * El rango de valores de la edad está entre 17 y 90.
+
+
+- Workclass (clase de trabajo): Variable de tipo categórico que expresa la clase de trabajo que tiene la persona. Puede tomar los siguientes valores.
+  * Private, persona con empleo privado.
+  * Self-emp-not-inc, autónomo.
+  * Self-emp-inc, personas que trabajan por cuenta propia en una incorporación o negocio propio. 
+  * Federal-gov, funcionario del gobierno federal.
+  * Local-gov, funcionario del gobierno local.
+  * State-gov, funcionario del gobierno estatal.
+  * Without-pay, persona no empleada de manera remunerada (jubilados, voluntariados...).
+  * Never-worked, personas que nunca han trabajado.
+  
+  
+- fnlwgt (peso socio-económico): Variable de tipo númerico que representa el peso socio económico. 
+
+
+- Education (educación): Variable de tipo categórico que representa el nivel educativo alcanzado por una persona. Puede tomar los siguientes valores.
+  * Bachelors, grado universitario.
+  * Some-college, universitarios sin licenciatura.
+  * 11th, 11º de secundaria.
+  * HS-grad, graduado en secundaria.
+  * Prof-school, educación profesional, tras obtener una licenciatura.
+  * Assoc-acdm, título de asociado en un campo académico.
+  * Assoc-voc, título de asociado en un campo vocacional.
+  * 9th, 9º de secundaria.
+  * 7th-8th, 7º y 8º de secundaria.
+  * 12th, 12º de secundaria.
+  * Masters, máster universitario.
+  * 1st-4th, 1º a 4º de secundaria.
+  * 10th, 10º de secundaria.
+  * Doctorate, doctorado.
+  * 5th-6th, 5º y 6º de secundaria.
+  * Preschool, preescolar.
+
+
+- Education num (número de educación): Variable de tipo númerico que representa los valores anteriores. Cada categoría tiene asociado un número, donde un mayor valor significa mayor nivel de estudio.
+
+
+- Marital status (estado civil): Variable de tipo categórica que describe el estado civil de un individuo. Puede tomar los siguientes valores.
+  * Married-civ-spouse, casado con cónyuge civil.
+  * Divorced, divorciado.
+  * Never-married, nunca casado.
+  * Separated, separado.
+  * Widowed, viudo.
+  * Married-spouse-absent, casado, con cónyuge ausente.
+  * Married-AF-spouse, casado, con cónyuge en las Fuerzas Armadas.
+
+
+- Occupation (ocupación): Variable de tipo categórica que describe el tipo de trabajo de la persona. Puede tomar los siguientes valores.
+  * Tech-support, soporte técnico.
+  * Craft-repair, reparación.
+  * Other-service, otros servicios.
+  * Sales, ventas.
+  * Exec-managerial, ejecutivo o gerencial.
+  * Prof-specialty, especialidad profesional.
+  * Handlers-cleaners, manipuladores y limpiadores.
+  * Machine-op-inspct, operadores de máquinas e inspectores.
+  * Adm-clerical, administrativo.
+  * Farming-fishing, agricultura y pesca.
+  * Transport-moving, transporte y mudanzas.
+  * Priv-house-serv, servicio doméstico privado.
+  * Protective-serv, servicios de protección (policía o bombero).
+  * Armed-Forces, fuerzas armadas.
+
+
+- Relationship (relación): Variable de tipo categórica que describe el tipo de posición familiar de la persona. Puede tomar los siguientes valores.
+  * Wife, esposo.
+  * Own-child, hijo único.
+  * Husband, marido/mujer.
+  * Not-in-family, no pertenece a la familia.
+  * Other-relative, otro pariente.
+  * Unmarried, no casado.
+
+
+- Race (raza): Variable de tipo categórica que describe la raza de la persona. Puede tomar los siguientes valores.
+  * White, blanco.
+  * Asian-Pac-Islander, asiático-isleño del Pacífico.
+  * Amer-Indian-Eskimo, nativos americanos o indígenas americanos.
+  * Other, otro.
+  * Black, negro.
+
+
+- Sex (sexo): Variable de tipo binaria que representa el sexo de la persona, puede tomar el valor de mujer (Female) y hombre (Male).
+
+
+- Capital gain (capital ganado): Variable de tipo numérica que se refiere a la ganancia de capital, es la diferencia positiva entre el precio de venta y el precio de compra en una inversión.
+
+
+- Capital loss (capital perdido): Variable de tipo numérica que se refiere a la pérdida de capital, es la diferencia negativa entre el precio de compra y el precio de venta en una inversión.
+
+
+- Hours per week (horas por semana): Variable de tipo númerico que indica las horas trabajadas por semana por la persona.
+
+
+- Native country (país de nacimiento): Variable de tipo categórica que indica el país en el que ha nacido la persona. Puede tomar los siguientes valores. United-States, Cambodia, England, Puerto-Rico,       Canada, Germany, Outlying-US(Guam-USVI-etc), India, Japan, Greece, South, China, Cuba, Iran, Honduras, Philippines, Italy, Poland, Jamaica, Vietnam, Mexico, Portugal, Ireland, France, Dominican-Republic, Laos, Ecuador, Taiwan, Haiti, Columbia, Hungary, Guatemala, Nicaragua, Scotland, Thailand, Yugoslavia, El-Salvador, Trinadad&Tobago, Peru, Hong, Holand-Netherlands.	
+
+
+- Income (Ingresos): Variable objetivo de tipo binaria que representa los ingresos de la persona. Puede ser <=50K, si gana menos de 50000 dólares al año, o >50K si gana más de 50000 dólares al año.
+
+Con el siguiente comando podemos ver un resumen de los datos, nos muestra el tipo de datos y los posibles valores que toma (los que hemos explicado antes).
+
+```{r}
+str(datos)
+```
+
+Vamos a ver cuantas observaciones hay para cada opción de la variable respuesta.
+```{r}
+table(datos$Income.)
+
+```
+Vemos que aproximadamente el 75% de la  muestra, cobra menos de 50000 dólares al año. Esto se debe a que la mayoría de las personas cobran menos de esta cantidad, luego la muestra refleja la realidad de la sociedad. No podríamos coger una muestra igualitaria porque si no las predicciones no serían reales.
+
+
+```{r echo=FALSE}
+#Vamos a realizar diferentes tablas dividiendo los datos en train y test y además, por cada uno de estos haremos 2 tablas, una con las variables cualitativas y otro con las cuantitativas.
+
+# Tabla que contiene los datos de las variables cuantitativas 
+Cuantitativo_Datos= data.frame(Age=datos$Age,FNLWGT=datos$fnlwgt,CapitalGain=datos$Capital.gain,CapitalLoss=datos$Capital.loss,Hours=datos$Hours.per.week)
+
+# Tabla que contiene los datos de las variables cualitativos 
+Cualitativo_Datos = data.frame(WorkClass=datos$Workclass,Education=datos$Education,EstadoCivil=datos$Marital.status,Occupation=datos$Occupation.,RelationShip=datos$Relationship,Race=datos$Race,Sex=datos$Sex,NativeCountry=datos$Native.country,Income=datos$Income.)
+```
+
+```{r echo=FALSE}
+# Tabla que contiene los datos de la parte train de las variables cuantitativas 
+Cuantitativo_DatosTrain= data.frame(Age=Datos_Train$Age,FNLWGT=Datos_Train$fnlwgt,CapitalGain=Datos_Train$Capital.gain,CapitalLoss=Datos_Train$Capital.loss,Hours=Datos_Train$Hours.per.week)
+
+# Tabla que contiene los datos de la parte train de las variables cualitativas
+Cualitativo_DatosTrain=data.frame(WorkClass=Datos_Train$Workclass,Education=Datos_Train$Education,EstadoCivil=Datos_Train$Marital.status,Occupation=Datos_Train$Occupation.,RelationShip=Datos_Train$Relationship,Race=Datos_Train$Race,Sex=Datos_Train$Sex,NativeCountry=Datos_Train$Native.country,Income=Datos_Train$Income.)
+```
+
+```{r echo=FALSE}
+# Tabla que contiene los datos de la parte test de las variables cuantitativas
+Cuantitativo_DatosTest= data.frame(Age=Datos_Test$Age,FNLWGT=Datos_Test$fnlwgt,CapitalGain=Datos_Test$Capital.gain,CapitalLoss=Datos_Test$Capital.loss,Hours=Datos_Test$Hours.per.week)
+
+# Tabla que contiene los datos de la parte test de las variables cualitativas
+Cualitativo_DatosTest=data.frame(WorkClass=Datos_Test$Workclass,Education=Datos_Test$Education,EstadoCivil=Datos_Test$Marital.status,Occupation=Datos_Test$Occupation.,RelationShip=Datos_Test$Relationship,Race=Datos_Test$Race,Sex=Datos_Test$Sex,NativeCountry=Datos_Test$Native.country,Income=Datos_Test$Income.)
+```
+
+Vamos a hacer la matriz de correlación para ver si las variables cuantitativas están relacionadas
+```{r}
+cor(Cuantitativo_DatosTrain)
+```
+
+Con la matriz, nos damos cuenta de que las variables númericas no están correlacionadas, la mayor correlación que hay es de 0.10886121, que es un valor muy bajo, luego no existe ningún tipo de correlación.
+
+```{r}
+# Pairs para ver la relacion entre variables dos a dos
+attach(Datos_Train)
+pairs(Cuantitativo_DatosTrain)
+```
+
+En estas gráficas no se puede apreciar que haya ningún tipo de relación entre las variables númericas, ya que las nubes de puntos se distribuyen de forma aleatoria y sin mostrar ningun patrón. Para comprobar esto, vamos a realizar una matriz de correlación entre estas variables.
+
+
+Vamos a realizar gráficos para comparar distintas variables con la variable respuesta.
+Gráficos para comparar el income con las diferentes categorías de las variables
+```{r}
+# Comparacion del income con las edades 
+ggplot(Datos_Train, aes(x = Age, fill = Income.)) + geom_bar()
+```
+
+En esta gráfica, podemos que hay más personas que cobran menos de 50000 dólares anuales y además, podemos ver que la mayor parte de las personas que cobran más de está cantidad tienen entorno a 40 años. Además, entorno a esta edad, la mitad de las personas cobran menos de está cantidad y la otra mitad más.
+
+```{r}
+# Comparacion del income con la Ocupacion 
+ggplot(Datos_Train, aes(x = Occupation., fill=Income.)) + geom_bar() + coord_flip()
+```
+En este gráfico, podemos ver que en la mayoría de los trabajos, las personas cobran menos de 50000 dólares anuales, pero tambien podemos observar ciertas características importantes. Podemos ver que en el trabajo de Exec-managerial (ejecutivo) la mitad de las personas cobran más de 50000, que es un alto porcentaje comparado con los demás datos. En las variables de Prof-specialty, Craft_repair, sales y Transport-moving, el porcentaje es alto, siendo en la primera de estas entorno a un 33% y en las restantes entorno a un 25%. Además, en las variables Handlers-cleaners, Armed-Forces y Priv-house-serve todas las observaciones cobran menos de 50000.
+
+```{r}
+# Comparacion del income con las educacion 
+ggplot(Datos_Train, aes(x = Education, fill = Income.)) + geom_bar() + coord_flip()
+```
+En este gráfico, podemos ver que con los estudios de Prof-school y Doctorate, el porcentaje para de cobrar más de 50000 dólares es muy alto, luego con estos estudios tienes una alta probabilidad de cobrar más de dicha cantidad. Sin embargo, vemos que en los estudios de la de 1º a 12º curso, el porcentaje es muy najo, luego hay pocas probabilidades de cobrar más de dicha cantidad.
+
+```{r}
+# Comparacion del income con el sexo 
+ggplot(Datos_Train, aes(x = Sex, fill = Income.)) + geom_bar()
+```
+Con este gráfico, podemos ver que tanto en hombres como en mujeres, la mayor cantidad de personas gana menos de 50000 dólares anuales.
+
+Para las mujeres obtenemos que el 86% cobra menos de 50000 y para hombres este porcentaje es del 70%. Como la diferencia es del 15%, que es una diferencia pequeña, no podemos afirmar que sea más probable que los hombres suelan cobrar más de 50000 y que para las mujeres esto suceda en menor medida. De igual manera, este caso lo volveremos a tratar más adelante para confirmar nuestras sospechas.
+
+
+
+
+
+#Análisis de Componentes Principales (PCA)
+
+```{r}
+#Target con colores
+pca<-prcomp(Cuantitativo_DatosTrain,scale=T)
+
+pca_dataframe <- as.data.frame(pca$x)
+pca_dataframe_Income <- Datos_Train$Income.
+
+
+par(mfrow=c(2,3))
+ggplot(pca_dataframe, aes(x = PC2, y = PC5, color = Income.)) +
+  geom_point() +
+  labs(title = "PCA con Colores según el Income")
+
+ggplot(pca_dataframe, aes(x = PC4, y = PC5, color = Income.)) +
+  geom_point() +
+  labs(title = "PCA con Colores según el Income")
+
+ggplot(pca_dataframe, aes(x = PC2, y = PC4, color = Income.)) +
+  geom_point() +
+  labs(title = "PCA con Colores según el Income")
+
+```
+
+
+
+```{r}
+pca<-prcomp(Cuantitativo_DatosTrain,scale=T)
+pca
+```
+
+PC1 asigna pesos. La mayoría de las ocasiones asigna el mismo signo a todas las covariables. En nuestro caso particular la variable FNLWGT posee signo positivo mientras que las otras poseen el signo contrario. Esto se puede interpretar de la siguiente manera:
+  -	La variable FNLWGT, esta fuertemente correlacionada de forma positiva con PC1.
+  -	Las variables que tienen el signo contrario sugieren una relación inversa con PC1.
+
+Hay algunas posibles interpretaciones sobre esto, pero la que más nos convence (un vez realizado el análisis exploratorio de datos) es que  FNLWGT  tiene un impacto muy grande en la variabilidad general de los datos mientras que las demás variables, de forma INDIVIDUAL, tiene una relación no tan significativa.
+
+Vamos a analizar y a interpretar la PC2. Esto es, las personas estarían ordenadas en cuanto a su Capital Loss en un sentido ponderando en sentido contrario el Capital Gain.
+
+En PC3 el orden viene determinado solamente por FNLWGT.
+
+El caso de PC4 es muy interesante pues se puede llegar a interpretar de la siguiente manera. Hay correlación negativa entre la variable Age y las horas trabajadas por semana. Luego esto quiere decir que aquellas personas que trabajan mas horas a la semana en promedio suelen ser personas jóvenes.
+
+Si analizamos ahora PC5, observamos que  las personas estarían ordenadas en cuando a su Capital Gain en un sentido, ponderando en sentido contrario la variable edad.
+
+## Variabilidad explicada
+
+```{r}
+plot(prcomp(Cuantitativo_DatosTrain,scale=T))
+summary(prcomp(Cuantitativo_DatosTrain,scale=T))
+```
+
+Esta parte es la más importante para saber cuántas componentes elegimos. En la fila `Proportion of Variance` podemos comprobar que la proporción de varianza que explica cada una de las componentes es prácticamente la misma (en torno al 20%). Esto ya es un indicador de que este análisis no nos aclara ni nos ayuda de manera explicita a entender mejor los datos. Finalmente, se reafirma lo que estábamos intuyendo ya que en `Cumulative proportion` podemos hacernos una idea del numero de componentes principales que vamos a necesitar.
+
+Nosotros consideramos que a partir de un 75% de variabilidad, ya es buen indicador. No obstante, este método se basa en la reducción de dimensionalidad, pero si en este caso, con el sesgo que hemos elegido, tenemos que emplear 4 componentes principales no nos resulta de gran utilidad este método.
+
+## Análisis de los graficos
+
+### PC1-PC2
+```{r}
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,1:2])
+```
+
+Puntos cercanos en el mapa indican comportamiento similar en cuanto a las personas que estamos considerando en la base de datos. Del gráfico podemos inferir que hay ciertos puntos extremos en cuanto a las variables `Age`, `FNLWGT`, `Capital Gain`, `Capital Loss` y `Hours`. Pero, ¿en qué sentido? 
+
+Esas personas situadas arriba a la izquierda de PC1 son personas con edad avanzada con un `Capital Gain` alto, `Capital Loss` alto, con muchas horas trabajadas a la semana y con un peso socio-económico (`FNLWGT`) muy bajo.
+
+En cuanto a PC2, tenemos comportamientos extremos unos 5-10 puntos (situados abajo a la derecha) y en 5 puntos situados arriba a la izquierda.
+
+  -	Vamos a analizar primero los 5-15 puntos. Son personas con un Capital Loss muy alto     y un Capital Gain muy bajo (esto lo sabemos gracias a los signos que nos proporciona     la tabla al realizar el summary).
+
+  -	Los otros puntos restantes son personas con un Capital Gain muy alto y con un         Capital Loss muy bajo.
+
+### PC1-PC3
+```{r}
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,3)])
+```
+
+Puntos cercanos en el mapa indican comportamiento similar en cuanto a las personas que estamos considerando en la base de datos. Del gráfico podemos inferir que hay ciertos puntos extremos en cuanto a las variables `Age`, `FNLWGT`, `Capital Gain`, `Capital Loss` y `Hours`.  Pero, ¿en qué sentido? 
+
+Esas personas situadas a la izquierda de PC1 son personas con edad avanzada con un `Capital Gain` alto, `Capital Loss` alto, con muchas horas trabajadas a la semana y con un peso socio-económico (`FNLWGT`) muy bajo.
+
+En cuanto a PC3, tenemos comportamientos extremos en apenas 2 solos puntos, situados en la esquina superior derecha. La interpretación que podemos extraer es que son dos personas cuyo peso socioeconómico (`FNLWGT`) es mucho mas alto que el promedio de las demás personas.
+
+### PC1-PC4
+```{r}
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,4)])
+```
+
+Puntos cercanos en el mapa indican comportamiento similar en cuanto a las personas que estamos considerando en la base de datos. Del gráfico podemos inferir que hay ciertos puntos extremos en cuanto a las variables Age`, `FNLWGT`, `Capital Gain`, `Capital Loss` y `Hours`. Pero, ¿en qué sentido?
+
+Esas personas situadas a la izquierda de PC1 son personas con edad avanzada con un `Capital Gain` alto, `Capital Loss` alto, con muchas horas trabajadas a la semana y con un peso socio-económico (`FNLWGT`) muy bajo.
+
+Analicemos en este punto PC4. En este sentido tenemos comportamientos extremos en 1 solo punto. Esa persona posee una edad muy avanzada y trabaja pocas horas a la semana.
+
+### Graficos restantes
+```{r}
+par(mfrow=c(2,3))
+### PC2-PC3
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(2,3)])
+### PC2-PC4
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(2,4)])
+### PC3-PC4
+plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(3,4)])
+```
+
+En cuanto a las otras 3 graficas restantes, el procedimiento es el mismo. Es decir, buscar posibles puntos (personas) extremos y analizar que propiedades tienen.
+
+Una pequeña barrera que tiene el PCA, es que solo tiene en cuenta las variables CUANTITATIVAS de la base de datos. Esto significa que no podemos asegurar ni extrapolar nada sobre las otras variables CUALITATIVAS que tenemos en nuestra base de datos en nuestro análisis de componentes principales.
+
+
+Para finalizar esta parte del trabajo vamos a realizar un gráfico `biplot` para ayudar a visualizar las relaciones entre variables y observaciones.
+
+## Grafico "biplot".
+```{r}
+biplot(pca)
+```
+
+Los estados casi se ordenan en la componente PC2 por Capital Gain en un sentido, y por Capital Loss en el otro, como ya hemos comprobado anteriormente.
+
+
+# ANÁLISIS CLUSTER
+```{r}
+n = dim(datos)[1]
+p = dim(datos)[2]
+DatosTrainEscalados <- scale(Cuantitativo_DatosTrain)
+```
+
+A continuación creamos un vector en el que almacenaremos la variabilidad para los diferentes números de centros. Debemos quedarnos con el número de clusters a partir del cual el descenso en la variabilidad es más suave. Este metodo es conocido como el metodo del codo. 
+
+
+```{r echo  = FALSE}
+clusters2.datos=kmeans(DatosTrainEscalados,centers=2,nstart=25)
+#clusters2.datos$cluster
+#clusters2.datos$withinss
+
+clusters3.datos=kmeans(DatosTrainEscalados,centers=3,nstart=25)
+#clusters3.datos$cluster
+#clusters3.datos$withinss
+
+clusters4.datos=kmeans(DatosTrainEscalados,centers=4,nstart=25)
+#clusters4.datos$cluster
+#clusters4.datos$withinss
+
+clusters7.datos=kmeans(DatosTrainEscalados,centers=7,nstart=25)
+#clusters7.datos$cluster
+#clusters7.datos$withinss
+```
+
+
+```{r}
+#Inicializamos el vector
+SSW <- vector(mode = "numeric", length = 15)
+
+#Variabilidad de todos los datos, es decir, todos los datos como un único cluster
+SSW[1] <- (n - 1) * sum(apply(DatosTrainEscalados,2,var)) 
+
+#Variabilidad de cada modelo, desde 2 clusters hasta 15 clusters
+for (i in 2:15) SSW[i] <- sum(kmeans(DatosTrainEscalados,centers=i,nstart=25)$withinss)
+
+#Dibujamos un gráfico con el resultado
+plot(1:15, SSW, type="b", xlab="Number of Clusters", ylab="Sum of squares within groups",pch=19, col="steelblue4")
+
+centroides=aggregate(DatosTrainEscalados,by=list(clusters4.datos$cluster),FUN=mean)
+t(centroides)  
+```
+En nuestro caso al ver la gráfica entre elegimos 4 clusters.
+Vamos a ver utilizando NbClust cual es el numero optimo de clusters poniendo como mínimo 2 y como máximo 15. 
+
+```{r}
+library(NbClust)
+nb <- NbClust(DatosTrainEscalados, distance = "euclidean", min.nc = 2, max.nc = 15, method = "kmeans")
+```
+Podemos observar que el numero optimo, por este metodo, de clusters es 7.
+Vamos a comparar los dos resultados.
+
+Construimos ahora sí nuestro análisis cluster y vemos cuales son los centros en cada uno de los casos y los representamos dibujando las variables dos a dos, donde cada color representa un cluster.
+```{r}
+#Para 4
+centroides=aggregate(DatosTrainEscalados,by=list(clusters4.datos $cluster),FUN=mean)
+t(centroides)
+# Dibujamos los clusters en el scatterplot (variables 2a2)
+nk=4 # nk es el numero de clusters 
+pairs(DatosTrainEscalados,col= clusters4.datos$cluster,pch=19)
+points(clusters4.datos$centers, col = 1:nk, pch = 19, cex=2)
+#Para 7
+centroides=aggregate(DatosTrainEscalados,by=list(clusters7.datos $cluster),FUN=mean)
+t(centroides)  
+# Dibujamos los clusters en el scatterplot (variables 2a2)
+nk=7 # nk es el numero de clusters 
+pairs(DatosTrainEscalados,col= clusters7.datos$cluster,pch=19)
+points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
+```
+Con los siguientes graficos veremos como se agrupan las observaciones en estos dos casos.
+```{r}
+library(parameters)
+
+res_kmeans <- cluster_analysis(DatosTrainEscalados, n=4, method="kmeans")
+plot(summary(res_kmeans))
+ 
+res_kmeans <- cluster_analysis(DatosTrainEscalados, n=7, method="kmeans")
+plot(summary(res_kmeans))
+```
+
+#Cluster de PCA
+```{r}
+clusters7.datos_PCA <- clusters7.datos$cluster
+library(cluster)
+clusplot(DatosTrainEscalados, clusters7.datos_PCA, color=TRUE, shade = TRUE, labels = 7, lines = 0)
+
+centroides=aggregate(DatosTrainEscalados,by=list(clusters7.datos$cluster),FUN=mean)
+t(centroides)  
+# Dibujamos los clusters en el scatterplot (variables 2a2)
+nk=7 # nk es el numero de clusters 
+pairs(DatosTrainEscalados,col= clusters7.datos$cluster,pch=19)
+points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
+
+clusters4.datos_PCA <- clusters4.datos$cluster
+library(cluster)
+clusplot(DatosTrainEscalados, clusters4.datos_PCA, color=TRUE, shade = TRUE, labels = 4, lines = 0)
+centroides=aggregate(DatosTrainEscalados,by=list(clusters4.datos$cluster),FUN=mean)
+t(centroides)  
+# Dibujamos los clusters en el scatterplot (variables 2a2)
+nk=4 # nk es el numero de clusters 
+pairs(DatosTrainEscalados,col= clusters4.datos$cluster,pch=19)
+points(clusters4.datos$centers, col = 1:nk, pch = 19, cex=2)
+```
+Estudiando los clusters con PCA vemos que con 7 clusters no hay una gran visibilidad de ellos, 5 de los 7 se solapan, asi que hemos hecho el mismo estudio con 4 clusters, lo que nos proporciona una mayor visibilidad.
+Encontramos dos casos extremos en nuestros clusters.
+El cluster de abajo a la derecha reúne las observaciones que tienen un fnlwgt muy alto y el resto de variables bajas.
+El otro cluster extremo seria el de arriba cuyas observaciones se caracterizan por tener un capital gain y fnlwgt alto y un capital loss bajo. A continuacion vemos cuales son los centroides de cada cluster. 
+Por ultimo, representamos los clusters dibujando las variables dos a dos.
+
+# Métodos jerarquicos
+Para realizar esta sección se utiliza la función hclust, en la cual se pueden utilizar distintos métodos como “single”, “ward.D”, “complete”… En nuestro caso el que nos proporciona mayor información y visibilidad es el realizado con “ward.D”.
+```{r}
+# Primero obtenemos la matriz de distancias
+d <- dist(Cuantitativo_DatosTrain, method = "euclidean")
+
+#Probamos varios metodos de agrupacion y nos damos cuenta que el mejor es ward.D
+fit <- hclust(d, method="ward.D")
+plot(fit, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)
+
+groups <- cutree(fit, k=7) # Fijamos en 7 el número de clusters
+rect.hclust(fit, k=7, border="red")
+
+fit <- hclust(d, method="ward.D")
+plot(fit, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)
+
+groups <- cutree(fit, k=4) # Fijamos en 4 el número de clusters
+rect.hclust(fit, k=4, border="red")
+```
+Aqui podemos ver los siete clusters en el primer grafico y los cuatro clusters en el segundo.
+
+
+
+# KNN
+
+KNN lo que va a hacer es clasificar un nuevo dato basándose en las características de sus vecinos más cercanos.
+
+Para realizar el Knn, primero debemos definir el valor de k que va a ser el número de vecinos más cercanos que se tendrán en cuenta al clasificar un nuevo datos.
+
+```{r}
+library(class)
+#library(cli)
+# library(caret)
+# Indicamos las categorias de la variable respuesta
+c2 <- factor(Datos_Train$Income.,labels = c("<=50K", ">50K"))
+# Definimos el numero de vecinos mas cercanos que vamos a tener en cuenta para hacer la clasificacion
+k1 = length(datos$Age)^((4)/(14+4))
+# Creamos el modelo para el knn
+modelo1 <- knn(train = Cuantitativo_DatosTrain, test = Cuantitativo_DatosTest, cl = c2, k = k1)
+
+# Vemos la prediccion que hace el modelo knn
+predicionKNN=table(modelo1, Datos_Test$Income.)
+predicionKNN
+#confusionMatrix(table(modelo1, Datos_Test$Income.), positive="TRUE")
+# print(confusionMatrix(data = as.factor(predicionKNN),reference=as.factor(Cualitativo_DatosTest$Income.)))
+
+```
+La interpretación de esta tabla es la siguiente:
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 277
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 83
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 16
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 11
+
+Estos datos nos muestra que el knn tiene una exactitud del 74.42% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+
+De manera recíproca tiene un error del 25.58% (FP+FN)/N
+
+Además, tiene una precisión del 83.83% TP/(TP+FP), que es bastante alta.
+
+# Árboles de decisión
+
+Primero hagamos una pequeña introducción sobre los Árboles de Decisión. 
+
+Los árboles de decisión son modelos utilizados en la toma de decisiones. Los vamos a usar para clasificar, predecir y tomar decisiones. En los Árboles de decisión cada nodo representa una condición, y las ramas representan posibles respuestas, lo que nos ayuda a tomar decisiones, donde estas, están basadas en múltiples condiciones.
+
+Al tratarse de un método útil en la toma de decisiones, nos vamos a ayudar de esta técnica para predecir si una nueva persona registrada en nuestra base de datos (con todas sus variables) gana anualmente más de 50K o menos de 50K.
+
+
+```{r echo = FALSE}
+#Convertimos las variables cualitativas en factores
+Datos_con_Factores <- datos
+Datos_con_Factores[,2] = as.factor(Datos_con_Factores[,2])
+Datos_con_Factores[,4] = as.factor(Datos_con_Factores[,4])
+Datos_con_Factores[,6] = as.factor(Datos_con_Factores[,6])
+Datos_con_Factores[,7] = as.factor(Datos_con_Factores[,7])
+Datos_con_Factores[,8] = as.factor(Datos_con_Factores[,8])
+Datos_con_Factores[,9] = as.factor(Datos_con_Factores[,9])
+Datos_con_Factores[,10] = as.factor(Datos_con_Factores[,10])
+Datos_con_Factores[,14] = as.factor(Datos_con_Factores[,14])
+Datos_con_Factores[,15] = as.factor(Datos_con_Factores[,15])
+```
+
+Lo primero que vamos a hacer es generar una copia (objeto) de nuestra bases de datos, para trabajar con él, donde las variables cualitativas pasan a ser de tipo factor.
+
+```{r}
+library(rpart) # Cargamos la librería rpart
+set.seed(123)
+Datos_con_Factores.rp <- rpart(Datos_con_Factores[,15] ~., data=Datos_con_Factores[,1:14], method="class", cp=0.0001, parms=list(split="information"))
+# summary(Datos_con_Factores.rp) <---No ayuda mucho a interpretar lo que sucede.
+```
+
+```{r}
+#Parámetro de complejidad
+plotcp(Datos_con_Factores.rp)
+printcp(Datos_con_Factores.rp)
+```
+
+El comando `plotcp(Datos_con_Factores.rp)` genera un gráfico que muestra el costo-complejidad del árbol y ayuda a seleccionar el mejor modelo con la cantidad óptima de nodos (conocido como "poda" del árbol). Es decir queremos un equilibrio entre el costo y la complejidad del árbol. 
+
+En este gráfico:
+•	Eje X: nos muestra los valores de complejidad del árbol.
+•	Eje Y: Representa el error de clasificación, asociado con cada árbol a medida que varía su complejidad.
+
+Por lo tanto podemos observar como el punto del gráfico donde el error cuadrático medio es mínimo es en 0.037. En otras palabras este punto puede ser seleccionado como el árbol definitivo tras realizar la poda.
+
+Si nos damos cuenta esto tiene sentido, ya que hay un momento, que es justo a partir del punto 0.037, en el cuál por mucho que hagamos el árbol más profundo, el error que se comete no disminuye, es más, sube. De otra forma, la tasa de acierto no mejora a parir de ese punto por mucho que hagamos el árbol más profundo.
+
+Por tanto en este punto se obtiene el árbol más óptimo en términos de complejidad y rendimiento.
+
+
+
+Al igual que hemos una copia de los datos originales, ahora vamos a proceder a realizar lo mismo, pero con los datos de entrenamiento y con los datos del test. Sin olvidarnos también de convertir las variables cualitativas en variables de tipo factor.
+
+```{r echo = FALSE}
+Datos_Train_con_Factores = Datos_Train
+Datos_Train_con_Factores[,2] = as.factor(Datos_Train_con_Factores[,2])
+Datos_Train_con_Factores[,4] = as.factor(Datos_Train_con_Factores[,4])
+Datos_Train_con_Factores[,6] = as.factor(Datos_Train_con_Factores[,6])
+Datos_Train_con_Factores[,7] = as.factor(Datos_Train_con_Factores[,7])
+Datos_Train_con_Factores[,8] = as.factor(Datos_Train_con_Factores[,8])
+Datos_Train_con_Factores[,9] = as.factor(Datos_Train_con_Factores[,9])
+Datos_Train_con_Factores[,10] = as.factor(Datos_Train_con_Factores[,10])
+Datos_Train_con_Factores[,14] = as.factor(Datos_Train_con_Factores[,14])
+Datos_Train_con_Factores[,15] = as.factor(Datos_Train_con_Factores[,15])
+
+Datos_Test_con_Factores = Datos_Test
+Datos_Test_con_Factores[,2] = as.factor(Datos_Test_con_Factores[,2])
+Datos_Test_con_Factores[,4] = as.factor(Datos_Test_con_Factores[,4])
+Datos_Test_con_Factores[,6] = as.factor(Datos_Test_con_Factores[,6])
+Datos_Test_con_Factores[,7] = as.factor(Datos_Test_con_Factores[,7])
+Datos_Test_con_Factores[,8] = as.factor(Datos_Test_con_Factores[,8])
+Datos_Test_con_Factores[,9] = as.factor(Datos_Test_con_Factores[,9])
+Datos_Test_con_Factores[,10] = as.factor(Datos_Test_con_Factores[,10])
+Datos_Test_con_Factores[,14] = as.factor(Datos_Test_con_Factores[,14])
+Datos_Test_con_Factores[,15] = as.factor(Datos_Test_con_Factores[,15])
+```
+
+
+En esta parte se nos presenta un pequeño problema. Al realizar los dos bancos de datos “Train” y “Test”, hay una persona en concreto, la cuál posee un valor de la variable `Education` en los datos de entrenamiento, que no aparece en el banco de datos “Test”.
+
+Lo que hemos realizado es añadir a nuestros datos de entrenamiento esa fila del banco de datos de testeo.
+
+```{r}
+#Añadimos al train la fila que tiene Preschool porque esta en los test y no en el train
+Datos_Train_con_Factores <- rbind(Datos_Train_con_Factores, Datos_Test_con_Factores[c('209'),])
+```
+
+## Predicciones Con el Árbol de Decisión 
+
+```{r}
+n=dim(Datos_con_Factores)[1]
+y.pred=predict(Datos_con_Factores.rp,Datos_con_Factores[,-c(15)])
+# y.pred
+```
+
+Predict (EN FORMA DE PROBABILIDADES) con todos los datos de la tabla, basados en el arbol de decision `Datos_con_Factores.rp`.
+
+```{r}
+factores=colnames(y.pred)
+y.pred.fact=matrix(0,n,1)
+for (i in 1:n)
+y.pred.fact[i]= factores[which.max(y.pred[i,])]
+y.real.fact=Datos_con_Factores[,15]
+table(y.pred.fact,y.real.fact) #<-Tabla de predicciones frente a valor real de todos los datos.
+
+# sum(y.real.fact=="buff")
+# sum(y.real.fact=="sick")
+```
+
+Al realizar esta tabla podemos observar como se relacionan los valores predichos, de los valores reales de TODOS LOS DATOS.
+
+La interpretación de esta tabla es la siguiente:
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 1089
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 109
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 64
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 288
+
+
+```{r}
+x.train=Datos_Train_con_Factores
+x.test=Datos_Test_con_Factores
+
+#Datos train
+Datos_Train_con_Factores.rp <- rpart(x.train[,15] ~., data=x.train[,1:14], cp=0.037, parms=list(split="information"))
+```
+
+Generamos un nuevo Árbol de Decisión, basado en el valor `cp = 0.037` obtenido en la parte anterior, y considerando ahora los datos de entrenamiento `x.train`.
+
+```{r}
+k=dim(x.train)[1]
+y.pred.train=predict(Datos_Train_con_Factores.rp, x.train[,-c(15)])
+# y.pred.train
+```
+
+Predict (EN FORMA DE PROBABILIDADES) con los datos de entrenamiento, basados en el Arbol de decision `Datos_Train_con_Factores.rp`.
+
+```{r}
+factores=colnames(y.pred.train)
+y.pred.train.fact=matrix(0,k,1)
+for (i in 1:k)
+y.pred.train.fact[i]= factores[which.max(y.pred.train[i,])]
+y.real.train.fact=x.train[,15]
+table(y.pred.train.fact,y.real.train.fact)
+```
+
+Al realizar esta tabla podemos observar cómo se relacionan los valores predichos, de los valores reales de los datos de entrenamiento.
+
+La interpretación de esta tabla es la siguiente:
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 538
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 83
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 47
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 108
+
+
+```{r}
+# Datos test
+##Datos_Test_con_Factores = Datos_Test_con_Factores[Datos_Test_con_Factores$Education != 'Preschool',]
+m=dim(x.test)[1] #tamanno de la muestra de test
+y.pred.test=predict(Datos_Train_con_Factores.rp, x.test[,-c(15)])
+#y.pred.test
+```
+
+Predict (EN FORMA DE PROBABILIDADES) con los datos de entrenamiento "Test", basados en el Arbol de decision `Datos_Train_con_Factores.rp`.
+
+```{r}
+factores=colnames(y.pred.test)
+y.pred.test.fact =factores[max.col(y.pred.test)]
+y.real.test.fact=x.test[,15]
+table(y.pred.test.fact,y.real.test.fact)
+
+
+## Tabla de confusionMatrix donde tenemos todas las medidas de rendimiento
+# print(confusionMatrix(data = as.factor(y.pred.test.fact),reference=as.factor(Datos_Test$Income.)))
+```
+Al realizar esta tabla podemos observar cómo se relacionan los valores predichos, de los valores reales de los datos “Test".
+
+La interpretación de esta tabla es la siguiente:
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 260
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 42
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 33
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 52
+
+
+Estos datos nos muestra que el random forest tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+
+```{r echo = FALSE}
+(260+52)/387
+```
+De manera recíproca tiene un error del 19.38% (FP+FN)/N
+
+```{r echo = FALSE}
+(33+42)/387
+```
+Además, tiene una precisión del 56% TP/(TP+FP). Que no es muy alta pero está bien, luego el modelo no es muy preciso con las predicciones.
+
+```{r echo = FALSE}
+42/(42+33)
+```
+
+# RANDOM FOREST
+
+```{r}
+library(randomForest)
+set.seed(123)
+
+# Añadimos la primera fila de la tabla train a la tabla del test
+x.test <- rbind(x.train[1,],x.test)
+# Se la eliminamos
+x.test <- x.test[-1,]
+
+# Creamos el random forest
+Datos_con_Factores.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
+
+# Predecimos para cada una de las obsesrvaciones de los datos del train la variable respuesta.
+
+y.pred.train.rf= predict(Datos_con_Factores.rf, x.train[,-c(15)])
+table.libreria.train=table(y.pred.train.rf,  as.factor(x.train[,15]))
+
+# Predecimos para cada una de las obsesrvaciones de los datos del test la variable respuesta.
+
+y.pred.test.rf=predict(Datos_con_Factores.rf, x.test[,-c(15)])
+table.libreria.test=table(y.pred.test.rf,  as.factor(x.test[,15]))
+
+# Imprimimos los resultados
+
+print(table.libreria.train)
+print(table.libreria.test)
+
+# print(confusionMatrix(data = as.factor(y.pred.test.rf),as.factor(x.test$Income.)), positive = unique(Income.)[1])
+
+#levels(as.factor(x.test$Income.))[2]
+
+```
+
+Como vemos en los resultados, los datos del train los predice todos bien, esto es normal ya que ha sido entrenado con estos datos y los árboles han sido creados a través de estos.
+
+La interpretación de la tabla con los datos test es la siguiente:
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 258
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 40
+
+-	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 35
+
+-	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 54
+
+
+Estos datos nos muestra que el random forest tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+
+De manera recíproca tiene un error del 19.38% (FP+FN)/N
+
+Además, tiene una precisión del 60.67% TP/(TP+FP). Que no es muy alta pero está bien, luego el modelo no es muy preciso con las predicciones.
+
+
+Ahora vamos a ver si existe sesgo de sexo en las predicciones para evitar discriminaciones injustas. Para ello vamos a realizar un random forest en el que no se incluya la variable sexo y vamos a realizar las predicciones para las observaciones de las mujeres de los datos del test. Para estas mismas, vamos a realizar las predicciones usando el modelo anterior (en el que se usa la variable sexo), y vamos a comparar ambas predicciones para identificar si existe sesgo. Haremos lo mismo para los hombres.
+
+```{r}
+
+library(dplyr)
+# Creamos una tabla con las observaciones que sean mujeres de los datos test
+Datos_Test_con_Factores_Mujeres = subset(Datos_Test_con_Factores,Datos_Test_con_Factores$Sex == " Female")
+
+# Le añadimos la primera fila de los datos del train y se la quitamos para asociar las tablas y que no se produzca un error
+Datos_Test_con_Factores_Mujeres <- rbind(x.train[1,],Datos_Test_con_Factores_Mujeres)
+Datos_Test_con_Factores_Mujeres <- Datos_Test_con_Factores_Mujeres[-1,]
+
+# Creamos una tabla con las observaciones que sean hombres de los datos test
+Datos_Test_con_Factores_Hombre = subset(Datos_Test_con_Factores,Datos_Test_con_Factores$Sex == " Male")
+
+# Le añadimos la primera fila de los datos del train y se la quitamos para asociar las tablas y que no se produzca un error
+Datos_Test_con_Factores_Hombre <- rbind(x.train[1,],Datos_Test_con_Factores_Hombre)
+Datos_Test_con_Factores_Hombre <- Datos_Test_con_Factores_Hombre[-1,]
+```
+
+```{r}
+# Creamos un random forest con todas las observaciones del train pero sin usar la variable sexo
+Datos_con_Factores_SinSexo.rf <- randomForest(x.train[,-c(10,15)], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
+
+# Hacemos la prediccion de las mujeres usando el random forest sin la variable sexo 
+pred_Mujeres_SinSexo.rf=predict(Datos_con_Factores_SinSexo.rf, Datos_Test_con_Factores_Mujeres[,-c(15)])
+table.pred_Mujeres_SinSexo.rf=table(pred_Mujeres_SinSexo.rf,  as.factor(Datos_Test_con_Factores_Mujeres[,15]))
+print(table.pred_Mujeres_SinSexo.rf)
+
+# Hacemos la prediccion de las mujeres usando el random forest con la variable sexo 
+pred_Mujeres.rf=predict(Datos_con_Factores.rf, Datos_Test_con_Factores_Mujeres[,-c(15)])
+table.pred_Mujeres.rf=table(pred_Mujeres.rf,  as.factor(Datos_Test_con_Factores_Mujeres[,15]))
+print(table.pred_Mujeres.rf)
+```
+Podemos ver que en ambos casos la predicción es la misma, luego podemos decir que para las mujeres no hay sesgo de sexo.
+```{r}
+
+# Hacemos la prediccion de los hombres usando el random forest sin la variable sexo 
+pred_Hombres_SinSexo.rf=predict(Datos_con_Factores_SinSexo.rf, Datos_Test_con_Factores_Hombre[,-c(15)])
+table.pred_Hombres_SinSexo.rf=table(pred_Hombres_SinSexo.rf,  as.factor(Datos_Test_con_Factores_Hombre[,15]))
+print(table.pred_Hombres_SinSexo.rf)
+
+# Hacemos la prediccion de los hombres usando el random forest con la variable sexo 
+pred_Hombres.rf=predict(Datos_con_Factores.rf, Datos_Test_con_Factores_Hombre[,-c(15)])
+table.pred_Hombres.rf=table(pred_Hombres.rf,  as.factor(Datos_Test_con_Factores_Hombre[,15]))
+print(table.pred_Hombres.rf)
+
+```
+
+Para el caso de los hombres, la diferencia es mínima, de  observaciones, en las que usando la variable sexo, las predice bien, son verdaderos negativos y sin usar la variable las predice mal, son falsos positivos. Como las diferencia es pequeña podemos afirmar que tampoco existe sesgo de sexo.
+
+Como en ambos casos hemos visto que no existe un sesgo para cada sexo, podemos decir que el modelo no tiene sesgo para el sexo.
+
+
+
+
+
+#SVM
+Aquí, vamos a probar con dos tipos de kernel, el radial y el polinomial, que llevan asociados dos parámetros. Para un primer cálculo emplearemos unas aproximaciones algo amplias de dichos parámetros para observar la efectividad del modelo. Más tarde, usaremos una función de R para ajustar dichos parámetros y obtener la predicción definitiva.
+
+```{r}
+gamma_est = 1/apply(Cuantitativo_DatosTrain, 2, sd)
+norma2 = function(x) sqrt(sum(x^2))
+cost_est = apply(Cuantitativo_DatosTrain, 2, norma2)
+
+
+# Calculamos el modelo utilizando RBF
+svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
+
+svm2 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="polynomial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
+
+# Predecimos
+
+pred1 = predict(svm1, Cuantitativo_DatosTest)
+pred2 = predict(svm2, Cuantitativo_DatosTest)
+# Calculamos la matriz de confusión
+
+table(pred1, x.test[,15])
+table(pred2, x.test[,15])
+```
+
+
+
+Al realizar la prediccion sin ajustar parametros obtenemos que, eligiendo un kernel radial, la tasa de aciertos/exactitud es de un 76.22%, tasa de error 23.77% y una precision del 52.63%. Eligiendo un kernel polynomial, la tasa de aciertos/exactitud es del 78.03%, la tasa de error es del 21.96% y una precision del 69.56%.
+A continuacion, ajustaremos los parametros y obtendremos la prediccion definitiva.
+
+```{r}
+#ajustando parametros
+parametros = tune.svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), gamma = seq(0.5,2.5,by=0.5), cost = seq(10,90,by=20))
+attributes(parametros)
+
+# Calculamos el modelo con estos parámetros y kernel radial
+svm1Ajustado = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma= parametros$best.parameters[1], cost= parametros$best.parameters[2], scale=T)
+
+# Predecimos
+pred1Ajustado = predict(svm1Ajustado, Cuantitativo_DatosTest)
+
+# Calculamos la matriz de confusión
+table(pred1Ajustado, x.test[,15])
+
+
+# Calculamos el modelo con estos parámetros y kernel polinomial
+svm2Ajustado = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="polynomial", gamma= parametros$best.parameters[1], cost= parametros$best.parameters[2], scale=T)
+svm2Ajustado.prob = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="polynomial", gamma= parametros$best.parameters[1], cost= parametros$best.parameters[2], scale=T, prob = T)
+# Predecimos
+pred2Ajustado = predict(svm2Ajustado, Cuantitativo_DatosTest)
+pred2Ajustado.prob = predict(svm2Ajustado, Cuantitativo_DatosTest, prob = T)
+
+# Calculamos la matriz de confusión
+table(pred2Ajustado, x.test[,15])
+```
+Al ajustar los parametros obtenemos mejores resultados, eligiendo un kernel radial obtenemos una tasa de aciertos/exactitud del 78.29%, una tasa de error del 21.7% y una precision del 64.7%. Eligiendo un kernel polinomial obtenemos una tasa de aciertos/exactitud del 79.32%, una tasa de error del 20.67% y una precision del 73.33%. Por ello, el kernel polinomial es el que mejor modelo nos proporciona.
+
+
+Curvas ROC
+Las curvas ROC nos permiten ver cual es mejor modelo, el cual utilizaremos a la hora de predecir con los datos de validacion.
+```{r}
+library(pROC)
+par(pty= "s") #square
+
+Datos_Test$income_binario <- ifelse(Datos_Test$Income. == " >50K", 1, 0)
+#arboles
+y.real.test.fact=Datos_Test[,16]
+
+#random forest
+y.pred.test.rf.p=predict(Datos_con_Factores.rf, x.test[,-c(15)], type = "prob")
+
+roc(y.real.test.fact,y.pred.test[,2],plot=TRUE, legacy.axes= TRUE, percent= TRUE, xlab= "PorcentajeFalsospositivos", ylab= "Porcentajeverdaderos postivios", col= "#377eb8", lwd= 2, print.auc= TRUE,legend=TRUE, brier.in.legend=TRUE)
+roc(y.real.test.fact,y.pred.test.rf.p[,2],percent=TRUE, col="#4daf4a",lwd=2, print.auc=TRUE, add=TRUE,print.auc.y= 40,plot=TRUE,legend=TRUE)
+
+#roc(y.real.test.fact,attr(pred2Ajustado.prob, "probabilities")[,2],percent=TRUE,col="goldenrod",lwd= 2, print.auc=TRUE, add=TRUE,print.auc.y= 30,plot=TRUE,legend=TRUE)
+
+legend("bottom", legend=c("DT", "RF","SVM"), col=c("#377eb8","#4daf4a", "goldenrod"), lwd=2,cex=.5, xpd= TRUE, horiz =TRUE)
+
+```
+El mejor modelo es el de Random Forest.
+
+
+# Estudio Datos Validación
+
+Una vez ya hemos visto y comprobado mediante distintas técnicas, que el mejor modelo se obtiene mediante `RANDOM FOREST`, veamos que es lo que ocurre si estudiamos los datos de validación.
+
+```{r}
+Datos_Validation_con_Factores = Datos_Validation
+Datos_Validation_con_Factores[,2] = as.factor(Datos_Validation_con_Factores[,2])
+Datos_Validation_con_Factores[,4] = as.factor(Datos_Validation_con_Factores[,4])
+Datos_Validation_con_Factores[,6] = as.factor(Datos_Validation_con_Factores[,6])
+Datos_Validation_con_Factores[,7] = as.factor(Datos_Validation_con_Factores[,7])
+Datos_Validation_con_Factores[,8] = as.factor(Datos_Validation_con_Factores[,8])
+Datos_Validation_con_Factores[,9] = as.factor(Datos_Validation_con_Factores[,9])
+Datos_Validation_con_Factores[,10] = as.factor(Datos_Validation_con_Factores[,10])
+Datos_Validation_con_Factores[,14] = as.factor(Datos_Validation_con_Factores[,14])
+Datos_Validation_con_Factores[,15] = as.factor(Datos_Validation_con_Factores[,15])
+
+# Añadimos al train la fila que tiene Preschool porque esta en el conjunto de validacion y no en el train
+
+Datos_Train_con_Factores <- rbind(Datos_Train_con_Factores, Datos_Validation_con_Factores[c('858'),])
+
+x.train = Datos_Train_con_Factores
+
+x.validation = Datos_Validation_con_Factores
+
+# Añadimos la primera fila de la tabla train a la tabla de validation
+
+x.validation <- rbind(x.train[1,],x.validation)
+# Se la eliminamos
+
+x.validation <- x.validation[-1,]
+
+# Volvemos a ejecutar el modelo que teniamos
+
+Datos_con_Factores.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
+```
+
+## Predicciones
+
+```{r}
+y.pred.validation.rf=predict(Datos_con_Factores.rf, x.validation[,-c(15)])
+table.libreria.validation=table(y.pred.validation.rf,  as.factor(x.validation[,15]))
+
+print(table.libreria.validation)
+```
+
+Hay varias métricas y técnicas que podemos utilizar para evaluar la bondad del modelo. Destacamos las siguientes:
+
+```{r}
+# Matriz de confusión
+
+# print(confusionMatrix(data = y.pred.validation.rf,reference=as.factor(x.validation$Income.)))
+```
+
+```{r}
+# Importancia de las variables en el modelo RANDOM FOREST
+
+importance(Datos_con_Factores.rf)
+```
+
+# Conclusiones Finales
+
+Viendo las predicciones de cada modelo y analizando como son mediante la curva ROC podemos ver que el mejor modelo para las predicciones en nuestros datos es el Random Forest.
+
+También, tras analizar los datos hemos visto, que si que son proporcionales tanto el nivel de educación como el trabajo que ejerzas con los ingresos. Sin embargo, hemos visto que el sexo no es influyente.
+
+
+# Nuevas tendencias.
+
+Tras la realización de este trabajo, nos planteamos lass siguientes cuestiones que podriamos resolverlas en un futuro.
+
+En cuanto a la variable `fnlwgt` tenemos muchos indicios de que se trata de una variable, que a parte de tratarse del peso socio-economico de una persona, es una variable que elimina cualquier tipo de sesgo que pueda existir en nuestra base de datos.
+
+Entonces nos planteamos la siguiente pregunta, ¿que ocurriria si eliminasemos esa variable de nustro conjunto de variables?
+
+Un trabajo futuro sería, por ejemplo, analizar si tras eliminar la variable `fnlwgt` existiría algún tipo de sesgo.
+
+Por otra parte, se nos plantea otro escenario. Dado un individuo que no gana mas de 50K que podría tener condiciones para ganarlo, que recomendación podemos dar a esa persona para que gane mas de 50k.
+
