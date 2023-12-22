@@ -876,7 +876,7 @@ y.pred.test.rf.p=predict(Datos_con_Factores.rf, x.test[,-c(15)], type = "prob")
 roc(y.real.test.fact,y.pred.test[,2],plot=TRUE, legacy.axes= TRUE, percent= TRUE, xlab= "PorcentajeFalsospositivos", ylab= "Porcentajeverdaderos postivios", col= "#377eb8", lwd= 2, print.auc= TRUE,legend=TRUE, brier.in.legend=TRUE)
 roc(y.real.test.fact,y.pred.test.rf.p[,2],percent=TRUE, col="#4daf4a",lwd=2, print.auc=TRUE, add=TRUE,print.auc.y= 40,plot=TRUE,legend=TRUE)
 
-#roc(y.real.test.fact,attr(pred2Ajustado.prob, "probabilities")[,2],percent=TRUE,col="goldenrod",lwd= 2, print.auc=TRUE, add=TRUE,print.auc.y= 30,plot=TRUE,legend=TRUE)
+roc(y.real.test.fact,attr(pred2Ajustado.prob, "probabilities")[,2],percent=TRUE,col="goldenrod",lwd= 2, print.auc=TRUE, add=TRUE,print.auc.y= 30,plot=TRUE,legend=TRUE)
 
 legend("bottom", legend=c("DT", "RF","SVM"), col=c("#377eb8","#4daf4a", "goldenrod"), lwd=2,cex=.5, xpd= TRUE, horiz =TRUE)
 
