@@ -43,6 +43,8 @@ La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir
 
 5. ¿Cual es el mejor kernel para la separacion de nuestros datos?
 
+6. Una vez se tenga el mejor modelo seleccionado, ¿tendremos los resultados que esperamos frente a unos datos nunca observados?
+
 
 # Leemos los datos
 
@@ -625,11 +627,6 @@ factores=colnames(y.pred.test)
 y.pred.test.fact =factores[max.col(y.pred.test)]
 y.real.test.fact=x.test[,15]
 table(y.pred.test.fact,y.real.test.fact)
-
-
-## Tabla de confusionMatrix donde tenemos todas las medidas de rendimiento
-
-print(confusionMatrix(data = as.factor(y.pred.test.fact),reference=as.factor(Datos_Test$Income.)))
 ```
 
 Al realizar esta tabla podemos observar cómo se relacionan los valores predichos, de los valores reales de los datos “Test".
@@ -644,12 +641,22 @@ La interpretación de esta tabla es la siguiente:
 
 -	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 52
 
+Veamos ahora que tan bueno es el modelo mediante el estudio de diversas medidas de incertidumbre:
 
-Estos datos nos muestra que el random forest tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+```{r}
+
+## Tabla de confusionMatrix donde tenemos todas las medidas de rendimiento
+
+print(confusionMatrix(data = as.factor(y.pred.test.fact),reference=as.factor(Datos_Test$Income.)))
+```
+
+También se puede realizar de forma manual. Esto es:
+
 
 ```{r echo = FALSE}
 (260+52)/387
 ```
+Estos datos nos muestran que el método de Árboles de Decisión tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
 
 De manera recíproca tiene un error del 19.38% (FP+FN)/N
 
