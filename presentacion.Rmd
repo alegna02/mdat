@@ -269,7 +269,7 @@ Para las mujeres obtenemos que el 86% cobra menos de 50000 y para hombres este p
 
 
 
-#Análisis de Componentes Principales (PCA)
+# Análisis de Componentes Principales (PCA)
 
 ```{r}
 #Target con colores
@@ -890,7 +890,7 @@ Como en ambos casos hemos visto que no existe un sesgo para cada sexo, podemos d
 
 
 
-#SVM
+# SVM
 Aquí, vamos a probar con dos tipos de kernel, el radial y el polinomial, que llevan asociados dos parámetros. Para un primer cálculo emplearemos unas aproximaciones algo amplias de dichos parámetros para observar la efectividad del modelo. Más tarde, usaremos una función de R para ajustar dichos parámetros y obtener la predicción definitiva.
 
 ```{r}
@@ -947,7 +947,7 @@ table(pred2Ajustado, x.test[,15])
 Al ajustar los parametros obtenemos mejores resultados, eligiendo un kernel radial obtenemos una tasa de aciertos/exactitud del 78.29%, una tasa de error del 21.7% y una precision del 64.7%. Eligiendo un kernel polinomial obtenemos una tasa de aciertos/exactitud del 79.32%, una tasa de error del 20.67% y una precision del 73.33%. Por ello, el kernel polinomial es el que mejor modelo nos proporciona.
 
 
-Curvas ROC
+# Curvas ROC
 Las curvas ROC nos permiten ver cual es mejor modelo, el cual utilizaremos a la hora de predecir con los datos de validacion.
 ```{r}
 library(pROC)
