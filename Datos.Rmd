@@ -263,6 +263,7 @@ cor(Cuantitativo_DatosTrain)
 Con la matriz, nos damos cuenta de que las variables númericas no están correlacionadas, la mayor correlación que hay es de 0.10886121, que es un valor muy bajo, luego no existe ningún tipo de correlación.
 
 # Análisis bivariado
+
 Vamos a ver que distribución siguen algunas de las variables, para ello vamos a realizar un gráfico pairs() donde también se muestran los histogramas de cada variable.
 
 ```{r echo=TRUE}
@@ -483,7 +484,8 @@ En cuanto a PC3, tenemos comportamientos extremos en apenas 2 solos puntos, situ
 
 ### PC1-PC4
 ```{r}
-plot(prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,4)])
+pca1_pca4<-prcomp(Cuantitativo_DatosTrain,scale=T)$x[,c(1,4)]
+plot(pca1_pca4)
 ```
 
 Puntos cercanos en el mapa indican comportamiento similar en cuanto a las personas que estamos considerando en la base de datos. Del gráfico podemos inferir que hay ciertos puntos extremos en cuanto a las variables Age`, `FNLWGT`, `Capital Gain`, `Capital Loss` y `Hours`. Pero, ¿en qué sentido?
@@ -511,13 +513,24 @@ Una pequeña barrera que tiene el PCA, es que solo tiene en cuenta las variables
 Para finalizar esta parte del trabajo vamos a realizar un gráfico `biplot` para ayudar a visualizar las relaciones entre variables y observaciones.
 
 ## Grafico "biplot".
+
 ```{r}
 biplot(pca)
 ```
 
 Los estados casi se ordenan en la componente PC2 por Capital Gain en un sentido, y por Capital Loss en el otro, como ya hemos comprobado anteriormente.
 
+## Conclusiones: Componentes Principales
+
+Las conclusiones a las que llegamos es que este modelo utilizando componentes principales no es muy bueno a la hora de explicar, tanto la variabilidad de nuestros datos, como al hacer predicciones.
+
+Esto se debe a que, como sólo empleamos variables cuantitativas (discretas y continuas) para la realización de este modelo, nos estamos dejando mucha variabilidad explicada en las otras variables categóricas que no entran en el modelo.
+
+En nuestra base de datos, la mayoría de nuestras variables son categóricas por lo tanto es razonable pensar que la importancia y la significatividad de estas, sean importantes a la hora de realizar predicciones o contrastes de hipóstesis para nuestros datos.
+
+
 # Analisis Cluster
+
 El clustering es un proceso para agrupar un conjunto de datos en grupos (también conocidos como “clusters”) de manera que los datos dentro de cada grupo son similares entre sí, y diferentes del resto de grupos.
 Existen varios algoritmos de clustering como K-Means y Hierarchical Clustering, cada uno con sus propias características y utilidades. 
 Antes de trabajar con ellos vamos a escalar las tablas de datos. Escalamos los datos para que no haya grandes diferencias entre los valores de las columnas.
@@ -627,6 +640,7 @@ Veamos que resultado obtenemos con 7 clusters. El primer cluster contiene observ
 ```
 
 # Métodos jerarquicos
+
 El cluster jerárquico es una técnica para agrupar datos que son similares entre sí. Es similar a la técnica de k-means, pero en lugar de dividir todo en un número fijo de grupos (k), el algoritmo va creando una jerarquía de grupos, donde cada grupo contiene subgrupos, y cada subgrupo contiene a su vez subgrupos, y así sucesivamente formando un dendrograma.
 
 Hay dos maneras de hacerlo:
@@ -854,7 +868,7 @@ y.pred.fact=matrix(0,n,1)
 for (i in 1:n)
 y.pred.fact[i]= factores[which.max(y.pred[i,])]
 y.real.fact=Datos_con_Factores[,15]
-table(y.pred.fact,y.real.fact) #<-Tabla de predicciones frente a valor real de todos los datos.
+table(y.pred.fact,y.real.fact) # <-Tabla de predicciones frente a valor real de todos los datos.
 
 # sum(y.real.fact=="buff")
 # sum(y.real.fact=="sick")
@@ -935,7 +949,7 @@ La interpretación de esta tabla es la siguiente:
 -	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 52
 
 
-Estos datos nos muestra que el random forest tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+Estos datos nos muestra que el modelo de Árboles de deisión tiene una exactitud del 80.62% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
 
 ```{r}
 (260+52)/387
@@ -950,6 +964,13 @@ Además, tiene una precisión del 56% TP/(TP+FP). Que no es muy alta pero está 
 ```{r}
 42/(42+33)
 ```
+## Conclusiones: Árboles de decisión
+
+En nuestro caso podemos observar como para los datos de nuestro conjunto de test, el error que se comete no supera el 20%. Teniendo en cuenta la dimensión de nuestros datos junto con la preción y exctitud que tienen podemos decir que no es un mal modelo para predecir.
+
+De igual manera, vamos a seguir investigando modelos, algunos más complejos que este, que nos permitan bajar ese error que cometemos y aumentar el valor de la preción y de la exactitud.
+
+No obstante, si lo que queremos es explicar de la manera mas sencilla y breve lo que sucede con el ingreso de las personas, por el hecho de  tratarse de un modelo "sencillo" y muy entendible por cualquiera (muy parecido a un juego), nos sirve para tener de cierta intuición de lo que le sucede a nuestros datos.
 
 # RANDOM FOREST
 
@@ -1043,7 +1064,9 @@ pred_Mujeres.rf=predict(Datos_con_Factores.rf, Datos_Test_con_Factores_Mujeres[,
 table.pred_Mujeres.rf=table(pred_Mujeres.rf,  as.factor(Datos_Test_con_Factores_Mujeres[,15]))
 print(table.pred_Mujeres.rf)
 ```
+
 Podemos ver que en ambos casos la predicción es la misma, luego podemos decir que para las mujeres no hay sesgo de sexo.
+
 ```{r}
 
 # Hacemos la prediccion de los hombres usando el random forest sin la variable sexo 
@@ -1230,26 +1253,53 @@ x.validation <- rbind(x.train[1,],x.validation)
 
 x.validation <- x.validation[-1,]
 
-# Volvemos a ejecutar el modelo que teniamos
 
-Datos_con_Factores.rf <- randomForest(x.train[,1:14], as.factor(x.train[,15]), ntree=100, importance=FALSE, proximity=TRUE, mtry=4, replace=FALSE)
+
+#Definimos los parametros que vamos a estudiar
+parametros_svm <- expand.grid(C = c(0.1, 1, 10), gamma = c(0.1, 1, 10))
+
+entrenar_evaluar_svm <- function(C, gamma, x.train, x.validation) {
+  modelo_Final <- svm(Income. ~ ., data = x.train, kernel = "radial", cost = C, gamma = gamma)
+  predicciones_Finales <- predict(modelo_Final, x.validation[, -15])  
+  confusion_matrix <- table(predicciones_Finales, x.validation$Income.)
+  precision <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+  return(1 - precision)
+}
+
+modelo_tune <- tune(svm, Income. ~ ., data = x.train, kernel = "radial",
+                    ranges = parametros_svm, tunecontrol = tune.control(sampling = "cross"))
+
+# Mostramos los mejores parametros que hemos encontrado
+
+mejores_parametros <- modelo_tune$best.parameters
+print(mejores_parametros)
+
+modelo_definitivo <- svm(Income. ~ ., data = x.train, kernel = "radial",
+                    cost = mejores_parametros$C, gamma = mejores_parametros$gamma)
 ```
 
 ## Predicciones
 
 ```{r}
-y.pred.validation.rf=predict(Datos_con_Factores.rf, x.validation[,-c(15)])
-table.libreria.validation=table(y.pred.validation.rf,  as.factor(x.validation[,15]))
+y.pred.validation.svm=predict(modelo_definitivo, x.validation[,-c(15)])
+table.libreria.validation=table(y.pred.validation.svm,  as.factor(x.validation[,15]))
 
 print(table.libreria.validation)
+
+
 ```
+```{r}
+# Tasa de error y.pred.validation.svm
+(0+112)/387
+```
+
 
 Hay varias métricas y técnicas que podemos utilizar para evaluar la bondad del modelo. Destacamos las siguientes:
 
 ```{r}
 # Matriz de confusión
 
-print(confusionMatrix(data = y.pred.validation.rf,reference=as.factor(x.validation$Income.)))
+print(confusionMatrix(data = y.pred.validation.svm,reference=as.factor(x.validation$Income.)))
 ```
 
 ```{r}
