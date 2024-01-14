@@ -721,6 +721,7 @@ points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
 ```
 
 # KNN
+
 Knn significa "k-nearest neighbors" que en español, significa "k-vecinos más cercanos".
 El Knn es un modelo que se usa para realizar la clasificación de los datos. Este modelo se basa en la idea de que las observaciones que son similares tienden a estar cerca entre ellas.
 
@@ -763,6 +764,7 @@ Además, tiene una precisión del 83.83% TP/(TP+FP), Que es bastante alta.
 ```
 
 # Conclusiones KNN
+
 Las conclusiones a las que podemos llegar usando este modelo es que no tiene tanta exactitud como otros modelos realizados, ya que tiene una exactitud de 74.42%, luego es peor en cuanto a las predicciones. Sin embargo, este modelo es bastante preciso con las predicciones, con un porcentaje de un 83.83%. Pero aún teniendo una precisión considerablemente alta, otros modelos siguen siendo mejores que el KNN en general.
 
 
