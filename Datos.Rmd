@@ -387,8 +387,11 @@ boxplot(Cuantitativo_Datos$FNLWGT, main = "Boxplot de FNLWGT", xlab = "", ylab =
 En los gráficos podemos obervar que los valores que nos proporcionan de mediana, media, máximos, mínimos, etc coinciden con los observados anteriormente. Además, lo que podemos observar, es que tenemos bastantes valores atípicos, y esto se encuentran por encima del máximo, pero no por debajo del mínimo. Además, observando la variabilidad, vemos que la edad tiene bastante variabilidad pero sin embargo en la variable FNLWGT no existe tanta. Por último, en cuanto a la distribución de los datos, como la mediana en ambos casos se encuentra aproximadamente en la mitad de la caja, esto significa que los datos se aproximan a una distribución normal.
 
 # Conclusiones Análisis exploratorio de datos
-Como primera conclusión de esta parte podemos sacar que, los datos cuantitativos no están relacionados entre si, es decir, no existe correlación. Además, hemos hecho una primera comprobación de que no hay indicios de que exista sesgo en cuanto al sexo ya que hemos visto que según los datos que tenemos el 86% de la mujeres cobra menos de 50000 y para hombres este porcentaje es del 70%, luego la diferencia es de un 16% y no es razonable para afirmar que exista sesgo, de igual manera, esto lo volveremos a comprobar más tarde.
-Por último, cabe destacar, que hemos visto que las personas que tienen unos ingresos superiores a 50000 dólares suelen ser personas con estudios más avanzados y con una edad cercana a los 40 entre otras cosas observadas.
+Como primera conclusión de esta parte podemos sacar que, los datos cuantitativos no están relacionados entre si, es decir, no existe correlación.
+
+Además, hemos hecho una primera comprobación de que no hay indicios de que exista sesgo en cuanto al sexo ya que hemos visto que según los datos que tenemos el 86% de la mujeres cobra menos de 50000 y para hombres este porcentaje es del 70%, luego la diferencia es de un 16% y no es razonable para afirmar que exista sesgo, de igual manera, esto lo volveremos a comprobar más tarde.
+
+Por último, hemos contestado una de las preguntas iniciales, y hemos visto que si influye tanto el nivel de educación, como el trabajo de la persona para los ingresos que se obtengan, cabe destacar, que hemos visto que las personas que tienen unos ingresos superiores a 50000 dólares suelen ser personas con estudios más avanzados, trabajos menos duros físicamente y con una edad cercana a los 40 entre otras cosas observadas.
 
 # Análisis de Componentes Principales
 
@@ -755,14 +758,9 @@ Además, tiene una precisión del 83.83% TP/(TP+FP), Que es bastante alta.
 ```
 
 # Conclusiones KNN
+Las conclusiones a las que podemos llegar usando este modelo es que no tiene tanta exactitud como otros modelos realizados, ya que tiene una exactitud de 74.42%, luego es peor en cuanto a las predicciones. Sin embargo, este modelo es bastante preciso con las predicciones, con un porcentaje de un 83.83%. Pero aún teniendo una precisión considerablemente alta, otros modelos siguen siendo mejores que el KNN en general.
 
 
-
-Las conclusiones a las que llegamos es que este modelo utilizando componentes principales no es muy bueno a la hora de explicar, tanto la variabilidad de nuestros datos, como al hacer predicciones.
-
-Esto se debe a que, como sólo empleamos variables cuantitativas (discretas y continuas) para la realización de este modelo, nos estamos dejando mucha variabilidad explicada en las otras variables categóricas que no entran en el modelo.
-
-En nuestra base de datos, la mayoría de nuestras variables son categóricas por lo tanto es razonable pensar que la importancia y la significatividad de estas, sean importantes a la hora de realizar predicciones o contrastes de hipóstesis para nuestros datos.
 
 # Árboles de decisión
 
@@ -1007,14 +1005,33 @@ table.libreria.test=table(y.pred.test.rf,  as.factor(x.test[,15]))
 print(table.libreria.train)
 print(table.libreria.test)
 
-print(confusionMatrix(data = as.factor(y.pred.test.rf),as.factor(x.test$Income.)), positive = unique(Income.)[1]
-)
-#levels(as.factor(x.test$Income.))[2]
+Datos_con_Factores.rf
 
 ```
-HAY QUE COMENTAR LO DE LA CONFUSIONMATRIX YA QUE ELIGE SIEMPRE COMO CLASE POSITIVA <=50K.
+En el OOB obtenemos la matriz de confusión, y vemos las predicciones que hace para los datos del train. Para hacerlo lo que hace es hacer el modelo sin el dato a predecir y luego le predice, y esto lo hace con todos los datos. Los valores que obtenemos de esta matriz son los siguientes, 
 
-Como vemos en los resultados, los datos del train los predice todos bien, esto es normal ya que ha sido entrenado con estos datos y los árboles han sido creados a través de estos.
+-	Personas que de verdad cobran <=50K y el modelo lo ha predicho bien (<=50K) = 536
+
+-	Personas que de verdad cobran >50K y el modelo lo ha predicho mal (<=50K) = 49
+
+-	Personas que de verdad cobran <=50K y el modelo lo ha predicho mal (>50K) = 75
+
+-	Personas que de verdad cobran >50K y el modelo lo ha predicho bien (>50K) = 116
+
+Con estos datos el random forest tiene una exactitud del 84.02% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
+```{r}
+(536+116)/776
+```
+De manera recíproca tiene un error del 15.97% (FP+FN)/N
+```{r}
+(49+75)/776
+```
+Además, tiene una precisión del 60.73% TP/(TP+FP). Que no es muy alta pero está bien, luego el modelo no es muy preciso con las predicciones.
+```{r}
+116/(116+75)
+```
+
+Si hicieramos una predicción con los datos del train, los haría todos bien, esto es normal ya que ha sido entrenado con estos datos y los árboles han sido creados a través de estos, pero como hemos visto antes, esto no es una forma de hacer las matrices de confusión en random Forest.
 
 En los resultados de las predicciones del test podemos ver que para los 298 que tienen unos ingresos menores de 50000, predice bien 258, que son los verdaderos negativos (TN), y a 40 los predice mal, que son los falsos negativos (FN). Por otra parte, vemos que para los 89 que realmente ganan más de 50000, predice bien 54, que corresponden con los verdaderos positivos (TP) y mal a 35, que osn los falsos positivos (FP).
 
@@ -1030,6 +1047,9 @@ Además, tiene una precisión del 60.67% TP/(TP+FP). Que no es muy alta pero est
 ```{r}
 54/(54+35)
 ```
+
+# Sesgo en Random Forest
+
 Ahora vamos a ver si existe sesgo de sexo en las predicciones para evitar discriminaciones injustas. Para ello vamos a realizar un random forest en el que no se incluya la variable sexo y vamos a realizar las predicciones para las observaciones de las mujeres de los datos del test. Para estas mismas, vamos a realizar las predicciones usando el modelo anterior (en el que se usa la variable sexo), y vamos a comparar ambas predicciones para identificar si existe sesgo. Haremos lo mismo para los hombres.
 
 ```{r}
@@ -1084,6 +1104,12 @@ print(table.pred_Hombres.rf)
 Para el caso de los hombres, la diferencia es mínima, de  observaciones, en las que usando la variable sexo, las predice bien, son verdaderos negativos y sin usar la variable las predice mal, son falsos positivos. Como laa diferencia es pequeña podemos afirmar que tampoco existe sesgo de sexo.
 
 Como en ambos casos hemos visto que no existe un sesgo para cada sexo, podemos decir que el modelo no tiene sesgo para el sexo.
+
+# Conclusiones Random Forest
+
+Como podemos ver en la matriz de confusión que sale del modelo, esta tiene buenos valores en cuanto a exactitud aunque peores en cuando a precisión, de igual manera, de manera global, este es el mejor de los modelos que tenemos para predecir nuestros datos. 
+
+Además, en este modelo hemos respondido a una de las preguntas iniciales, si existía sesgo en cuanto al sexo. Tras analizar si existía, usando este modelo, hemos visto que no existe ningún sesgo en el sexo, ya que las predicciones, usando la variable sexo o sin usarla salen practicamente las mismas, luego no predice que vayas a tener más ingresos teniendo en cuenta el sexo.
 
 #SVM
 
@@ -1309,6 +1335,18 @@ importance(Datos_con_Factores.rf)
 ```
 
 # Conclusiones Finales
+
+En este estudio, tras comparar diversos modelos para abordar nuestro problema, el algoritmo de `Random Forest` ha demostrado ser la opción más efectiva. 
+
+Su capacidad para manejar conjuntos de datos complejos, lidiar con la multicolinealidad y la no linealidad, así como su habilidad para proporcionar predicciones precisas, lo posicionan como el modelo preferido para nuestro conjunto de datos.
+
+Su gran desempeño, apoyado por métricas de evaluación sólidas, refuerza su bondad para ser aplicado en situaciones del mundo real como se trata en este trabajo. 
+
+La selección del modelo `Random Forest` no solo se basa en su excelente desempeño predictivo, sino también en su capacidad para generalizar bien a nuevos conjuntos de datos.
+
+Para finalizar, tras analizar los datos hemos visto, que sí que son proporcionales tanto el nivel de educación como el trabajo que ejerzas con los ingresos. Sin embargo, hemos visto que el sexo no es influyente.
+
+A su vez, todas las preguntas que hemos realizado al comienzo del gtrabajo han podido ser contestadas de forma convincente basandonos en datos y en resultado que hemos obtenido.
 
 
 # Nuevas tendencias.
