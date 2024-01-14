@@ -34,19 +34,11 @@ library(e1071)
 
 2. ¿Es cierto que todas las variables aportan informacion significativa?
 
-3. ¿Habra algun modelo que prediga mejor de
+3. ¿Es proporcional el nivel de educacion junto con la profesion que se ocupa a la cantidad de ingreso que genera?
 
-4. ¿Es proporcional el nivel de educacion junto con la profesion que se ocupa a la cantidad de ingreso que genera?
+4. Teniendo en cuenta que el PCA solo tiene en cuenta variables que son cuantitavivas, ¿es buena idea considerar este modelo como un candidato a mejor modelo predictivo?
 
-5. Teniendo en cuenta que el PCA solo tiene en cuenta variables que son cuantitavivas, ¿es buena idea considerar este modelo como un candidato a mejor modelo predictivo?
-
-6.
-
-7. ¿
-
-8.
-
-9. ¿Cual es el mejor kernel para la separacion de nuestros datos?
+5. ¿Cual es el mejor kernel para la separacion de nuestros datos?
 
 La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir si los ingresos de una serie de personas superan los 50000 dólares al año según los datos del censo. Esta base de datos fue extraida por Barry Becker del censo de 1994 y tiene 48842 observaciones y 14 variables.
 
@@ -291,7 +283,7 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
 pairs(Cuantitativo_Datos,upper.panel=panel.cor,diag.panel=panel.hist)
 names(Cuantitativo_Datos)
 ```
-Con este gráfico podemos ver los histogramas de cada variables, con lo que podríamos ver que distribución sigue cada variable cuantitativa.
+Con este gráfico podemos ver los histogramas de cada variables, con lo que podríamos ver que distribución sigue cada variable cuantitativa. Sin embargo, viendo los resultados obtenidos no podemos sacar ninguna conclusión sobre la distribución de los datos. Los únicos datos que parecen que se aproximan a una normal son las horas.
 
 Vamos a ver la distribucion de las cualitativas haciendo sus histogramas.
 
@@ -389,15 +381,16 @@ Por último, vamos a realizar gráficos de boxplot, en estos gráficos podemos o
 
 La línea en el centro de la caja representa la mediana, la caja representa el rango intercuartil, que es la diferencia entre el tercer cuartil y el primer cuartil, y proporciona una medida de la dispersión de los datos en la mitad central. Los bigotes salen de la caja y llegan hasta los valores mínimos y máximos y los puntos que se salen de los bigotes representan valores atípicos. Además, la forma de la caja da información sobre la distribución de los datos y la longitud de los bigotes, nos dan información de la variabilidad de los datos. 
 ```{r}
-boxplot(Cuantitativo_Datos$Age, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
-boxplot(Cuantitativo_Datos$FNLWGT, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
-boxplot(Cuantitativo_Datos$CapitalGain, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
-boxplot(Cuantitativo_Datos$CapitalLoss, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
-boxplot(Cuantitativo_Datos$Hours, main = "Boxplot de Grupos", xlab = "Grupos", ylab = "Valores")
+boxplot(Cuantitativo_Datos$Age, main = "Boxplot de Edad", xlab = "", ylab = "Edad")
+boxplot(Cuantitativo_Datos$FNLWGT, main = "Boxplot de FNLWGT", xlab = "", ylab = "FNLWGT")
 ```
+En los gráficos podemos obervar que los valores que nos proporcionan de mediana, media, máximos, mínimos, etc coinciden con los observados anteriormente. Además, lo que podemos observar, es que tenemos bastantes valores atípicos, y esto se encuentran por encima del máximo, pero no por debajo del mínimo. Además, observando la variabilidad, vemos que la edad tiene bastante variabilidad pero sin embargo en la variable FNLWGT no existe tanta. Por último, en cuanto a la distribución de los datos, como la mediana en ambos casos se encuentra aproximadamente en la mitad de la caja, esto significa que los datos se aproximan a una distribución normal.
 
+# Conclusiones Análisis exploratorio de datos
+Como primera conclusión de esta parte podemos sacar que, los datos cuantitativos no están relacionados entre si, es decir, no existe correlación. Además, hemos hecho una primera comprobación de que no hay indicios de que exista sesgo en cuanto al sexo ya que hemos visto que según los datos que tenemos el 86% de la mujeres cobra menos de 50000 y para hombres este porcentaje es del 70%, luego la diferencia es de un 16% y no es razonable para afirmar que exista sesgo, de igual manera, esto lo volveremos a comprobar más tarde.
+Por último, cabe destacar, que hemos visto que las personas que tienen unos ingresos superiores a 50000 dólares suelen ser personas con estudios más avanzados y con una edad cercana a los 40 entre otras cosas observadas.
 
-#Análisis de Componentes Principales
+# Análisis de Componentes Principales
 
 ```{r}
 #Target con colores
@@ -741,15 +734,12 @@ modelo1 <- knn(train = Cuantitativo_DatosTrain, test = Cuantitativo_DatosTest, c
 # Vemos la prediccion que hace el modelo knn
 predicionKNN=table(modelo1, Datos_Test$Income.)
 
-#confusionMatrix(table(modelo1, Datos_Test$Income.), positive="TRUE")
-# print(confusionMatrix(data = as.factor(predicionKNN),reference=as.factor(Cualitativo_DatosTest$Income.)))
-
 ```
 La interpretación de esta tabla es la siguiente:
--	Personas que de verdad cobran <=50K y el modelo me lo ha predicho bien (<=50K) = 277
--	Personas que de verdad cobran >50K y el modelo me lo ha predicho mal (<=50K) = 83
--	Personas que de verdad cobran <=50K y el modelo me lo ha predicho mal (>50K) = 16
--	Personas que de verdad cobran >50K y el modelo me lo ha predicho bien (>50K) = 11
+-	Personas que de verdad cobran <=50K y el modelo lo ha predicho bien (<=50K) = 277
+-	Personas que de verdad cobran >50K y el modelo lo ha predicho mal (<=50K) = 83
+-	Personas que de verdad cobran <=50K y el modelo lo ha predicho mal (>50K) = 16
+-	Personas que de verdad cobran >50K y el modelo lo ha predicho bien (>50K) = 11
 
 Estos datos nos muestra que el knn tiene una exactitud del 74.42% (TP+TN)/N. Que es un valor bastante alto, luego el modelo es muy exacto en su predicción.
 ```{r}
@@ -763,6 +753,16 @@ Además, tiene una precisión del 83.83% TP/(TP+FP), Que es bastante alta.
 ```{r}
 83/(83+16)
 ```
+
+# Conclusiones KNN
+
+
+
+Las conclusiones a las que llegamos es que este modelo utilizando componentes principales no es muy bueno a la hora de explicar, tanto la variabilidad de nuestros datos, como al hacer predicciones.
+
+Esto se debe a que, como sólo empleamos variables cuantitativas (discretas y continuas) para la realización de este modelo, nos estamos dejando mucha variabilidad explicada en las otras variables categóricas que no entran en el modelo.
+
+En nuestra base de datos, la mayoría de nuestras variables son categóricas por lo tanto es razonable pensar que la importancia y la significatividad de estas, sean importantes a la hora de realizar predicciones o contrastes de hipóstesis para nuestros datos.
 
 # Árboles de decisión
 
