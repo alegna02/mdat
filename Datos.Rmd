@@ -27,6 +27,7 @@ library(gcookbook)
 library(stats)
 library(e1071)
 library(factoextra)
+library(ggfortify)
 ```
 
 # Preguntas de interés (Bussiness understanding)
@@ -40,6 +41,11 @@ library(factoextra)
 4. Teniendo en cuenta que el PCA solo tiene en cuenta variables que son cuantitavivas, ¿es buena idea considerar este modelo como un candidato a mejor modelo predictivo?
 
 5. ¿Cual es el mejor kernel para la separacion de nuestros datos?
+
+6. ¿Cuál es la forma optima de agrupar las observaciones en función de sus características?
+
+7. ¿Cuál de los modelos predictivos evaluados proporciona una mayor tasa de aciertos o exactitud en sus predicciones?
+
 
 La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir si los ingresos de una serie de personas superan los 50000 dólares al año según los datos del censo. Esta base de datos fue extraida por Barry Becker del censo de 1994 y tiene 48842 observaciones y 14 variables.
 
@@ -381,6 +387,7 @@ Para las mujeres obtenemos que el 86% cobra menos de 50000 y para hombres este p
 Por último, vamos a realizar gráficos de boxplot, en estos gráficos podemos observar valores atípicos en los datos así como medidas resumidas.
 
 La línea en el centro de la caja representa la mediana, la caja representa el rango intercuartil, que es la diferencia entre el tercer cuartil y el primer cuartil, y proporciona una medida de la dispersión de los datos en la mitad central. Los bigotes salen de la caja y llegan hasta los valores mínimos y máximos y los puntos que se salen de los bigotes representan valores atípicos. Además, la forma de la caja da información sobre la distribución de los datos y la longitud de los bigotes, nos dan información de la variabilidad de los datos. 
+
 ```{r}
 boxplot(Cuantitativo_Datos$Age, main = "Boxplot de Edad", xlab = "", ylab = "Edad")
 boxplot(Cuantitativo_Datos$FNLWGT, main = "Boxplot de FNLWGT", xlab = "", ylab = "FNLWGT")
@@ -454,6 +461,20 @@ Nosotros consideramos que a partir de un 75% de variabilidad, ya es buen indicad
 
 ## Análisis de los graficos
 
+## Grafico "biplot".
+
+Vemos las comparaciones mas importantes entre nuestras componentes principales:
+
+```{r}
+autoplot(prcomp(Cuantitativo_DatosTrain,scale=T),x=1,y=2,data = Cuantitativo_DatosTrain,loadings= TRUE,loadings.colour= 'blue',loadings.label.colour= 'red',loadings.label=TRUE, loadings.label.size= 4)
+
+autoplot(prcomp(Cuantitativo_DatosTrain,scale=T),x=2,y=4,data = Cuantitativo_DatosTrain,loadings= TRUE,loadings.colour= 'blue',loadings.label.colour= 'red',loadings.label=TRUE, loadings.label.size= 4)
+
+autoplot(prcomp(Cuantitativo_DatosTrain,scale=T),x=2,y=5,data = Cuantitativo_DatosTrain,loadings= TRUE,loadings.colour= 'blue',loadings.label.colour= 'red',loadings.label=TRUE, loadings.label.size= 4)
+
+autoplot(prcomp(Cuantitativo_DatosTrain,scale=T),x=4,y=5,data = Cuantitativo_DatosTrain,loadings= TRUE,loadings.colour= 'blue',loadings.label.colour= 'red',loadings.label=TRUE, loadings.label.size= 4)
+```
+
 ### PC1-PC2
 
 ```{r}
@@ -514,13 +535,6 @@ Una pequeña barrera que tiene el PCA, es que solo tiene en cuenta las variables
 
 Para finalizar esta parte del trabajo vamos a realizar un gráfico `biplot` para ayudar a visualizar las relaciones entre variables y observaciones.
 
-## Grafico "biplot".
-
-```{r}
-biplot(prcomp(Cuantitativo_DatosTrain,scale=T))
-```
-
-Los estados casi se ordenan en la componente PC2 por Capital Gain en un sentido, y por Capital Loss en el otro, como ya hemos comprobado anteriormente.
 
 ## Conclusiones: Componentes Principales
 
@@ -546,6 +560,7 @@ DatosTrainEscalados <- scale(Cuantitativo_DatosTrain)
 Cluster con k-means
 
 Este algoritmo funciona de la siguiente manera. Primero, debemos decidir cuántos grupos queremos tener. Este número se llama k. Entonces, el algoritmo escoge al azar k observaciones, para ser los centros de cada grupo. A continuación, asigna cada observación restante al grupo cuyo centro es más cercano a ella. Finalmente, calcula una nueva posición para los centros de los grupos, tomando en cuenta las observaciones asignadas a ese grupo. Y repite este proceso varias veces hasta que las observaciones dejen de cambiar de grupo.
+
 Vamos a probar con distinto número de clústers para ver como quedarían agrupadas las observaciones antes de calcular el numero optimo de clusters. Probamos con 2, 3, 4 y 7 centros.
 
 ```{r}
@@ -613,10 +628,11 @@ nb <- NbClust(DatosTrainEscalados, distance = "euclidean", min.nc = 2, max.nc = 
 
 Podemos observar que el numero optimo de clusters es 7.
 
-Con los siguientes graficos veremos como se agrupan las observaciones en estos dos casos. 
+Con los siguientes graficos veremos como se agrupan las observaciones en estos dos casos.
+
 ```{r}
 library(parameters)
-# Ponemos los dos para comparar, el 7  lo dice el metodo el 4 pues para ver que pasa con menos
+
 res_kmeans <- cluster_analysis(DatosTrainEscalados, n=4, method="kmeans")
 plot(summary(res_kmeans))
  
@@ -629,24 +645,50 @@ Con 4 clusters nuestro grafico nos proporciona la siguiente información. En el 
 
 Veamos que resultado obtenemos con 7 clusters. El primer cluster contiene observaciones con baja edad y horas. El segundo contiene observaciones con altas horas. El tercero contiene observaciones con alta edad y horas y extremadamente alto CapitalGain. El cuarto cluster contiene observaciones con alto CapitalLoss. El quinto contiene observaciones con alto fnlwgt. El sexto contiene observaciones con alta edad. Por ultimo el séptimo contiene observaciones con baja edad.
 
+# Cluster de PCA
 
+Como los gráficos pairs anteriores no nos proporcionan una gran visibilidad de los clusters decidimos hacer el análisis cluster con PCA.
 
 ```{r}
-# El grafico que sirve no nos vale ya que tenemos muchos datos y no se ve claramente
-# # Guardamos el vector con el cluster correspondiente a cada país
-# datos.clusters7 <- clusters7.datos$cluster
-# # Vamos a hacer PCA para poder graficar los clusters en 2dimensiones!
-# library(cluster)
-# clusplot(DatosTrainEscalados, datos.clusters7, color=TRUE, shade=TRUE, labels=2,lines=0)
+clusters7.datos_PCA <- clusters7.datos$cluster
+library(cluster)
+clusplot(DatosTrainEscalados, clusters7.datos_PCA, color=TRUE, shade = TRUE, labels = 7, lines = 0)
 
+centroides=aggregate(DatosTrainEscalados,by=list(clusters7.datos$cluster),FUN=mean)
+t(centroides)  
+# Dibujamos los clusters en el scatterplot (variables 2a2)
+nk=7 # nk es el numero de clusters 
+pairs(DatosTrainEscalados,col= clusters7.datos$cluster,pch=19)
+points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
+
+clusters4.datos_PCA <- clusters4.datos$cluster
+library(cluster)
+clusplot(DatosTrainEscalados, clusters4.datos_PCA, color=TRUE, shade = TRUE, labels = 4, lines = 0)
+centroides=aggregate(DatosTrainEscalados,by=list(clusters4.datos$cluster),FUN=mean)
+t(centroides)  
+# Dibujamos los clusters en el scatterplot (variables 2a2)
+nk=4 # nk es el numero de clusters 
+pairs(DatosTrainEscalados,col= clusters4.datos$cluster,pch=19)
+points(clusters4.datos$centers, col = 1:nk, pch = 19, cex=2)
 ```
+
+Estudiando los clusters con PCA vemos que con 7 clusters no hay una gran visibilidad de ellos, 5 de los 7 se solapan, asi que hemos hecho el mismo estudio con 4 clusters, lo que nos proporciona una mayor visibilidad.
+Encontramos dos casos extremos en nuestros clusters.
+
+El cluster de abajo a la derecha reúne las observaciones que tienen un CapitalGain , edad y horas altas y CapitalLoss bajo.
+
+El otro cluster extremo sería el de arriba cuyas observaciones se caracterizan por tener un CapitalLoss alto y valores bajos del resto de variables. A continuación, vemos cuales son los centroides de cada cluster. 
+Por último, representamos los clusters dibujando las variables dos a dos.
+
 
 # Métodos jerarquicos
 
 El cluster jerárquico es una técnica para agrupar datos que son similares entre sí. Es similar a la técnica de k-means, pero en lugar de dividir todo en un número fijo de grupos (k), el algoritmo va creando una jerarquía de grupos, donde cada grupo contiene subgrupos, y cada subgrupo contiene a su vez subgrupos, y así sucesivamente formando un dendrograma.
 
 Hay dos maneras de hacerlo:
+
 -Método ascendente: Comienza con cada punto de datos siendo un grupo y los va agrupando formando jerarquía
+
 -Método descendente: comienza con todos los puntos de datos en un solo grupo y va dividiendo en subgrupos.
 
 El resultado final es un dendrograma, que es similar a un árbol en el que cada hoja es un punto de datos y cada nodo interno es un grupo de puntos de datos. El nivel más alto del árbol es el grupo principal que contiene a todos los puntos de datos, y los niveles inferiores son los subgrupos.
@@ -656,69 +698,29 @@ Es importante mencionar que en este algoritmo es necesario definir una medida de
 Para realizar esta sección se utiliza la función hclust, en la cual se pueden utilizar distintos métodos como “single”, “ward.D”, “complete”… En nuestro caso el que nos proporciona mayor información y visibilidad es el realizado con “ward.D”.
 
 ```{r}
-#Probamos varios metodos de agrupacion y nos damos cuenta que el mejor es
 # Primero obtenemos la matriz de distancias
 d <- dist(Cuantitativo_DatosTrain, method = "euclidean")
+
+#Probamos varios metodos de agrupacion y nos damos cuenta que el mejor es ward.D
 fit <- hclust(d, method="ward.D")
-plot(fit, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este
+plot(fit, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)
 
 groups <- cutree(fit, k=7) # Fijamos en 7 el número de clusters
 rect.hclust(fit, k=7, border="red")
 
-fit2 <- hclust(d, method="single")
-plot(fit2, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
+fit <- hclust(d, method="ward.D")
+plot(fit, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)
 
-fit3 <- hclust(d, method="complete")
-plot(fit3, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
-
-fit4 <- hclust(d, method="average")
-plot(fit4, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
-
-fit5 <- hclust(d, method="mcquitty")
-plot(fit5, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
-
-fit6 <- hclust(d, method="median")
-plot(fit6, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
-
-fit7 <- hclust(d, method="centroid")
-plot(fit7, labels=rownames(Cuantitativo_DatosTrain),cex=0.7)#Este no
-
-
+groups <- cutree(fit, k=4) # Fijamos en 4 el número de clusters
+rect.hclust(fit, k=4, border="red")
 ```
-Aqui podemos ver los siete clusters.
 
-```{r}
+Aqui podemos ver los siete clusters en el primer grafico y los cuatro clusters en el segundo.
 
+# Conclusiones del análisis cluster
 
-##
-## FALTA HACER UN CLUSTER DE LOS PCA (hecho es lo copiado justo debajo(NO LO QUITO PARA AVISAROS))
-##
+El número óptimo de clusters para la agrupación de nuestros datos es 4 ya que es aquel que permite una diferenciación mas efectiva de los datos.
 
-
-clusters7.datos_PCA <- clusters7.datos$cluster
-library(cluster)
-clusplot(DatosTrainEscalados, clusters7.datos_PCA, color=TRUE, shade = TRUE, labels = 7, lines = 0)
-
-
-#fviz_cluster(clusters7.datos, data = Cuantitativo_DatosTrain)
-
-groups <- cutree(fit, k=7) # Fijamos en 7 el número de clusters
-plot(pca,col=groups)
-
-
-rect.hclust(fit, k=7, border="red")
-
-
-
-
-centroides=aggregate(DatosTrainEscalados,by=list(clusters7.datos $cluster),FUN=mean)
-t(centroides)  
-# Dibujamos los clusters en el scatterplot (variables 2a2)
-nk=7 # nk es el numero de clusters 
-pairs(DatosTrainEscalados,col= clusters7.datos$cluster,pch=19)
-points(clusters7.datos$centers, col = 1:nk, pch = 19, cex=2)
-
-```
 
 # KNN
 
@@ -1149,44 +1151,22 @@ cost_est = apply(Cuantitativo_DatosTrain, 2, norma2)
 
 
 # Calculamos el modelo utilizando RBF
-svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T,probability = T)
+svm1 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="radial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
 
 svm2 = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrain$Income), type="C-classification", kernel="polynomial", gamma=mean(gamma_est), cost=mean(cost_est), scale=T)
 
 # Predecimos
 
 pred1 = predict(svm1, Cuantitativo_DatosTest)
-
 pred2 = predict(svm2, Cuantitativo_DatosTest)
-
-
 # Calculamos la matriz de confusión
 
 table(pred1, x.test[,15])
 table(pred2, x.test[,15])
 ```
 
-```{r}
-# Tasa de error pred1
-(18+74)/387
-```
-
-```{r}
-# Precision pred1
-20/(18+20)
-```
-```{r}
-# Tasa de error pred2
-(7+78)/387
-```
-```{r}
-# Precision pred2
-16/(16+7)
-```
-
 Al realizar la prediccion sin ajustar parametros obtenemos que, eligiendo un kernel radial, la tasa de aciertos/exactitud es de un 76.22%, tasa de error 23.77% y una precision del 52.63%. Eligiendo un kernel polynomial, la tasa de aciertos/exactitud es del 78.03%, la tasa de error es del 21.96% y una precision del 69.56%.
-
-A continuación, ajustaremos los parametros y obtendremos la prediccion definitiva.
+A continuacion, ajustaremos los parametros y obtendremos la prediccion definitiva.
 
 ```{r}
 # Ajustando parametros
@@ -1215,34 +1195,18 @@ svm2Ajustado.prob = svm(Cuantitativo_DatosTrain, as.factor(Cualitativo_DatosTrai
 
 # Predecimos para sv2Ajustado
 pred2Ajustado = predict(svm2Ajustado, Cuantitativo_DatosTest)
-pred2Ajustado.prob = predict(svm2Ajustado, Cuantitativo_DatosTest, prob = T)
+pred2Ajustado.prob = predict(svm2Ajustado.prob, Cuantitativo_DatosTest, prob = T)
 
 # Calculamos la matriz de confusión
 
 table(pred2Ajustado, x.test[,15])
 ```
 
-```{r}
-# Tasa de error pred1Ajustado
-(12+72)/387
-```
-
-```{r}
-# Precision pred1Ajustado
-22/(12+22)
-```
-
-```{r}
-# Tasa de error pred2Ajustado
-(8+72)/387
-```
-
-```{r}
-# Precision pred2Ajustado
-22/(8+22)
-```
-
 Al ajustar los parametros obtenemos mejores resultados, eligiendo un kernel radial obtenemos una tasa de aciertos/exactitud del 78.29%, una tasa de error del 21.7% y una precision del 64.7%. Eligiendo un kernel polinomial obtenemos una tasa de aciertos/exactitud del 79.32%, una tasa de error del 20.67% y una precision del 73.33%. Por ello, el kernel polinomial es el que mejor modelo nos proporciona.
+
+# Conclusiones de SVM
+
+El SVM que nos proporciona los mejores resultados es aquel realizado con los parámetros ajustados y un kernel polinomial. Siendo un buen modelo predictivo, no es el mejor ya que hemos observado anteriormente que Random Forest proporciona mejores resultados.
 
 # Curvas ROC
 
@@ -1262,7 +1226,7 @@ y.pred.test.rf.p=predict(Datos_con_Factores.rf, x.test[,-c(15)], type = "prob")
 
 roc(y.real.test.fact,y.pred.test[,2],plot=TRUE, legacy.axes= TRUE, percent= TRUE, xlab= "PorcentajeFalsospositivos", ylab= "Porcentajeverdaderos postivios", col= "#377eb8", lwd= 2, print.auc= TRUE,legend=TRUE, brier.in.legend=TRUE)
 roc(y.real.test.fact,y.pred.test.rf.p[,2],percent=TRUE, col="#4daf4a",lwd=2, print.auc=TRUE, add=TRUE,print.auc.y= 40,plot=TRUE,legend=TRUE)
-roc(y.real.test.fact,attr(pred2Ajustado.prob, "probabilities")[,2],percent=TRUE,col="goldenrod",lwd= 2, print.auc=TRUE, add=TRUE,print.auc.y= 30,plot=TRUE,legend=TRUE)
+# roc(y.real.test.fact,attr(pred2Ajustado.prob, "probabilities")[,2],percent=TRUE,col="goldenrod",lwd= 2, print.auc=TRUE, add=TRUE,print.auc.y= 30,plot=TRUE,legend=TRUE)
 
 legend("bottom", legend=c("DT", "RF","SVM"), col=c("#377eb8","#4daf4a", "goldenrod"), lwd=2,cex=.5, xpd= TRUE, horiz =TRUE)
 ```
@@ -1303,7 +1267,7 @@ x.validation <- x.validation[-1,]
 
 
 #Definimos los parametros que vamos a estudiar
-parametros_svm <- expand.grid(C = c(0.1, 1, 10), gamma = c(0.1, 1, 10))
+parametros_svm <- expand.grid(C = c(0.3, 0.1, 0.2), gamma = c(0.3, 0.1, 0.2))
 
 entrenar_evaluar_svm <- function(C, gamma, x.train, x.validation) {
   modelo_Final <- svm(Income. ~ ., data = x.train, kernel = "radial", cost = C, gamma = gamma)
