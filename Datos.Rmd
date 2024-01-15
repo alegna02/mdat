@@ -1338,7 +1338,7 @@ La selección del modelo `Random Forest` no solo se basa en su excelente desempe
 
 Para finalizar, tras analizar los datos hemos visto, que sí que son proporcionales tanto el nivel de educación como el trabajo que ejerzas con los ingresos. Sin embargo, hemos visto que el sexo no es influyente.
 
-A su vez, todas las preguntas que hemos realizado al comienzo del gtrabajo han podido ser contestadas de forma convincente basandonos en datos y en resultado que hemos obtenido.
+A su vez, todas las preguntas que hemos realizado al comienzo del trabajo han podido ser contestadas de forma convincente basandonos en datos y en resultado que hemos obtenido.
 
 
 # Nuevas tendencias.
@@ -1347,7 +1347,7 @@ Tras la realización de este trabajo, nos planteamos lass siguientes cuestiones 
 
 En cuanto a la variable `fnlwgt` tenemos muchos indicios de que se trata de una variable, que a parte de tratarse del peso socio-economico de una persona, es una variable que elimina cualquier tipo de sesgo que pueda existir en nuestra base de datos.
 
-Entonces nos planteamos la siguiente pregunta, ¿que ocurriria si eliminasemos esa variable de nustro conjunto de variables?
+Entonces nos planteamos la siguiente pregunta, ¿que ocurriria si eliminasemos esa variable de nuestro conjunto de variables?
 
 Un trabajo futuro sería, por ejemplo, analizar si tras eliminar la variable `fnlwgt` existiría algún tipo de sesgo.
 
