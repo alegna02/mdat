@@ -51,7 +51,7 @@ La base de datos que hemos escogido se llama "Adult" y con ella vamos a predecir
 
 # Leemos los datos
 
-La base de datos que vamos a leer contiene sólo 1550 obervaciones. Esto se debe a que hemos escogido una muestra de la base de datos y lo que hemos hecho es eliminar los datos directamente de la base de datos, es decir, dentro del Excel. Además, aunque la base de datos original contiene valores nulos, nosotros nos hemos fijado en ellos y al ser pocos, un (calcular porcentaje)%, y ver que no son importantes los hemos decidido eliminar.
+La base de datos que vamos a leer contiene sólo 1550 obervaciones. Esto se debe a que hemos escogido una muestra de la base de datos y lo que hemos hecho es eliminar los datos directamente de la base de datos, es decir, dentro del Excel. Además, aunque la base de datos original contiene valores nulos, nosotros nos hemos fijado en ellos y al ser pocos, un 7%, y ver que no son importantes los hemos decidido eliminar.
 
 ```{r}
 # Leemos los datos
